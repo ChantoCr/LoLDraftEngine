@@ -23,8 +23,13 @@ const dimensionLabels: Record<RecommendationDimension, string> = {
 export function RecommendationPanel({ title, subtitle, recommendations }: RecommendationPanelProps) {
   return (
     <Panel eyebrow="Recommendation Engine" title={title} subtitle={subtitle}>
-      <div className="space-y-4">
-        {recommendations.map((recommendation, index) => {
+      {recommendations.length === 0 ? (
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-sm text-slate-400">
+          No candidates available for the current role, recommendation mode, or pool filter.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {recommendations.map((recommendation, index) => {
           const topDimensions = [...recommendation.breakdown.dimensions]
             .sort((left, right) => right.contribution - left.contribution)
             .slice(0, 3)
@@ -94,7 +99,8 @@ export function RecommendationPanel({ title, subtitle, recommendations }: Recomm
             </article>
           )
         })}
-      </div>
+        </div>
+      )}
     </Panel>
   )
 }

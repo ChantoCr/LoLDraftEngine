@@ -1,7 +1,13 @@
 import type { Role } from '@/domain/champion/types'
 import { unique } from '@/domain/common/math'
 import { getDraftSlot } from '@/domain/draft/selectors'
-import type { DraftState, RecommendationMode, TeamDraft, TeamSide } from '@/domain/draft/types'
+import type {
+  DraftState,
+  ProductMode,
+  RecommendationMode,
+  TeamDraft,
+  TeamSide,
+} from '@/domain/draft/types'
 
 function updateTeamDraftSlot(
   teamDraft: TeamDraft,
@@ -113,6 +119,20 @@ export function setRecommendationMode(
   return {
     ...draftState,
     recommendationMode,
+  }
+}
+
+export function setCurrentPickRole(draftState: DraftState, currentPickRole: Role): DraftState {
+  return {
+    ...draftState,
+    currentPickRole,
+  }
+}
+
+export function setProductMode(draftState: DraftState, productMode: ProductMode): DraftState {
+  return {
+    ...draftState,
+    productMode,
   }
 }
 

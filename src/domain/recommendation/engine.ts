@@ -1,9 +1,9 @@
 import type { ChampionPoolEntry, ChampionPoolProfile, ChampionPoolTier } from '@/domain/champion-pool/types'
 import type { Champion } from '@/domain/champion/types'
-import { clamp, roundTo, sum, unique } from '@/domain/common/math'
+import { average, clamp, roundTo, sum, unique } from '@/domain/common/math'
 import { analyzeDraftComposition } from '@/domain/composition/analyzer'
 import type { CompositionProfile } from '@/domain/composition/types'
-import { countFilledSlots, isChampionAvailable } from '@/domain/draft/selectors'
+import { countFilledSlots, getPickedChampionIds, isChampionAvailable } from '@/domain/draft/selectors'
 import type { DraftState, RecommendationMode } from '@/domain/draft/types'
 import { RECOMMENDATION_WEIGHTS_BY_MODE, type RecommendationWeights } from '@/domain/recommendation/config'
 import type {
@@ -12,12 +12,15 @@ import type {
   RecommendationDimensionScore,
   RecommendationReason,
 } from '@/domain/recommendation/types'
+import { getChampionMetaSignal, getMatchupSignal, getSynergySignal } from '@/domain/stats/selectors'
+import type { MetaSignal, PatchDataBundle, SynergySignal } from '@/domain/stats/types'
 
 interface RecommendChampionsForDraftInput {
   draftState: DraftState
   championsById: Record<string, Champion>
   recommendationMode?: RecommendationMode
   championPool?: ChampionPoolProfile
+  statsBundle?: PatchDataBundle
   topN?: number
 }
 
@@ -37,6 +40,7 @@ interface RecommendationContext {
   poolEntriesByChampionId: Record<string, ChampionPoolEntry>
   weights: RecommendationWeights
   needs: RecommendationNeeds
+  statsBundle?: PatchDataBundle
 }
 
 function getPoolEntriesByChampionId(championPool?: ChampionPoolProfile) {
@@ -110,24 +114,121 @@ function getCandidateChampions({
   return availableChampions.filter((champion) => poolChampionIds.has(champion.id))
 }
 
-function scoreAllySynergy(candidate: Champion, allyProfile: CompositionProfile) {
+function blendStatScore(baseScore: number, statScore: number | undefined, confidenceScore: number, maxImpact = 0.2) {
+  if (statScore === undefined) {
+    return baseScore
+  }
+
+  const impact = clamp(confidenceScore * maxImpact, 0, maxImpact)
+  return clamp(roundTo(baseScore * (1 - impact) + statScore * impact, 1), 0, 10)
+}
+
+function mapDeltaWinRateToScore(deltaWinRate = 0, lanePressure = 0) {
+  return clamp(roundTo(5 + deltaWinRate * 100 * 1.5 + lanePressure * 3, 1), 0, 10)
+}
+
+function mapMetaSignalToScore(metaSignal: MetaSignal) {
+  const tierBase: Record<NonNullable<MetaSignal['tier']>, number> = {
+    S: 9.5,
+    A: 8.4,
+    B: 7.1,
+    C: 5.8,
+    D: 4.4,
+  }
+  const baseScore = metaSignal.tier ? tierBase[metaSignal.tier] : 6.4
+  const winRateAdjustment = ((metaSignal.winRate ?? 0.5) - 0.5) * 100 * 1.4
+  const presenceAdjustment = (metaSignal.pickRate ?? 0) * 8 + (metaSignal.banRate ?? 0) * 4
+
+  return clamp(roundTo(baseScore + winRateAdjustment + presenceAdjustment, 1), 0, 10)
+}
+
+function resolveSynergySignal(
+  statsBundle: PatchDataBundle,
+  candidateChampionId: string,
+  allyChampionId: string,
+): SynergySignal | undefined {
+  return (
+    getSynergySignal(statsBundle, candidateChampionId, allyChampionId) ??
+    getSynergySignal(statsBundle, allyChampionId, candidateChampionId)
+  )
+}
+
+function getAllyPickedChampionIds(draftState: DraftState) {
+  return getPickedChampionIds(draftState, 'ALLY')
+}
+
+function getEnemyPickedChampionIds(draftState: DraftState) {
+  return getPickedChampionIds(draftState, 'ENEMY')
+}
+
+function getCandidateSynergySignals(candidate: Champion, context: RecommendationContext) {
+  if (!context.statsBundle) {
+    return []
+  }
+
+  return getAllyPickedChampionIds(context.draftState)
+    .filter((championId) => championId !== candidate.id)
+    .flatMap((allyChampionId) => {
+      const signal = resolveSynergySignal(context.statsBundle!, candidate.id, allyChampionId)
+      return signal ? [signal] : []
+    })
+}
+
+function getCandidateMatchupSignals(candidate: Champion, context: RecommendationContext) {
+  if (!context.statsBundle) {
+    return []
+  }
+
+  return getEnemyPickedChampionIds(context.draftState).flatMap((enemyChampionId) => {
+    const signal = getMatchupSignal(
+      context.statsBundle!,
+      candidate.id,
+      context.draftState.currentPickRole,
+      enemyChampionId,
+    )
+
+    return signal ? [signal] : []
+  })
+}
+
+function scoreAllySynergy(candidate: Champion, allyProfile: CompositionProfile, context: RecommendationContext) {
   const rawScore =
     candidate.traits.engage * (allyProfile.averageTraits.engage * 0.5 + allyProfile.averageTraits.scaling * 0.35) +
     candidate.traits.peel * (allyProfile.averageTraits.scaling * 0.55 + allyProfile.averageTraits.frontline * 0.15) +
     candidate.traits.frontline * (allyProfile.averageTraits.scaling * 0.35 + allyProfile.averageTraits.peel * 0.15) +
     candidate.traits.pick * allyProfile.averageTraits.engage * 0.2
+  const baseScore = clamp(roundTo(rawScore / 2.7, 1), 0, 10)
+  const synergySignals = getCandidateSynergySignals(candidate, context)
 
-  return clamp(roundTo(rawScore / 2.7, 1), 0, 10)
+  if (synergySignals.length === 0) {
+    return baseScore
+  }
+
+  const weightedScores = synergySignals.map((signal) => signal.synergyScore * signal.confidence.score)
+  const totalConfidence = average(synergySignals.map((signal) => signal.confidence.score))
+
+  return blendStatScore(baseScore, average(weightedScores), totalConfidence, 0.22)
 }
 
-function scoreEnemyCounter(candidate: Champion, enemyProfile: CompositionProfile) {
+function scoreEnemyCounter(candidate: Champion, enemyProfile: CompositionProfile, context: RecommendationContext) {
   const antiDive =
     (candidate.traits.peel * 0.7 + candidate.traits.disengage * 0.3) *
     (enemyProfile.averageTraits.dive * 0.55 + enemyProfile.averageTraits.pick * 0.45)
   const antiPoke = candidate.traits.engage * enemyProfile.averageTraits.poke * 0.3
   const antiPick = candidate.traits.frontline * enemyProfile.averageTraits.pick * 0.25
+  const baseScore = clamp(roundTo((antiDive + antiPoke + antiPick) / 1.2, 1), 0, 10)
+  const matchupSignals = getCandidateMatchupSignals(candidate, context)
 
-  return clamp(roundTo((antiDive + antiPoke + antiPick) / 1.2, 1), 0, 10)
+  if (matchupSignals.length === 0) {
+    return baseScore
+  }
+
+  const statScore = average(
+    matchupSignals.map((signal) => mapDeltaWinRateToScore(signal.deltaWinRate, signal.lanePressure) * signal.confidence.score),
+  )
+  const totalConfidence = average(matchupSignals.map((signal) => signal.confidence.score))
+
+  return blendStatScore(baseScore, statScore, totalConfidence, 0.24)
 }
 
 function scoreCompRepair(candidate: Champion, allyProfile: CompositionProfile, needs: RecommendationNeeds) {
@@ -175,7 +276,12 @@ function scoreExecutionFit(candidate: Champion, context: RecommendationContext) 
   const aggression = candidate.traits.engage * 0.55 + candidate.traits.dive * 0.45
   const stability =
     candidate.traits.frontline * 0.5 + candidate.traits.peel * 0.7 + candidate.traits.disengage * 0.35
-  const compBurden = context.allyProfile.executionDifficulty === 'HIGH' ? 1.4 : context.allyProfile.executionDifficulty === 'MEDIUM' ? 0.8 : 0.2
+  const compBurden =
+    context.allyProfile.executionDifficulty === 'HIGH'
+      ? 1.4
+      : context.allyProfile.executionDifficulty === 'MEDIUM'
+        ? 0.8
+        : 0.2
 
   if (context.draftState.productMode === 'COMPETITIVE') {
     return clamp(roundTo(5.8 + aggression * 0.65 + stability * 0.2 - compBurden, 1), 0, 10)
@@ -188,7 +294,7 @@ function scoreExecutionFit(candidate: Champion, context: RecommendationContext) 
   return clamp(roundTo(8.8 + stability * 0.35 - aggression * 0.25 - compBurden, 1), 0, 10)
 }
 
-function scoreMetaValue(candidate: Champion) {
+function scoreMetaValue(candidate: Champion, context: RecommendationContext) {
   const activeTraits = [
     candidate.traits.engage,
     candidate.traits.disengage,
@@ -205,8 +311,19 @@ function scoreMetaValue(candidate: Champion) {
       .sort((left, right) => right - left)
       .slice(0, 3)
       .reduce((total, value) => total + value, 0) / 3
+  const baseScore = clamp(roundTo(activeTraits * 0.7 + topTraitAverage * 1.4, 1), 0, 10)
 
-  return clamp(roundTo(activeTraits * 0.7 + topTraitAverage * 1.4, 1), 0, 10)
+  if (!context.statsBundle) {
+    return baseScore
+  }
+
+  const metaSignal = getChampionMetaSignal(context.statsBundle, candidate.id, context.draftState.currentPickRole)
+
+  if (!metaSignal) {
+    return baseScore
+  }
+
+  return blendStatScore(baseScore, mapMetaSignalToScore(metaSignal), metaSignal.confidence.score, 0.28)
 }
 
 function scoreComfortFit(candidate: Champion, context: RecommendationContext) {
@@ -222,8 +339,8 @@ function scoreComfortFit(candidate: Champion, context: RecommendationContext) {
 
 function buildDimensionScores(candidate: Champion, context: RecommendationContext): RecommendationDimensionScore[] {
   const dimensions: Record<RecommendationDimension, number> = {
-    allySynergy: scoreAllySynergy(candidate, context.allyProfile),
-    enemyCounter: scoreEnemyCounter(candidate, context.enemyProfile),
+    allySynergy: scoreAllySynergy(candidate, context.allyProfile, context),
+    enemyCounter: scoreEnemyCounter(candidate, context.enemyProfile, context),
     compRepair: scoreCompRepair(candidate, context.allyProfile, context.needs),
     damageBalance: scoreDamageBalance(candidate, context.allyProfile),
     frontlineImpact: scaleTraitScore(candidate.traits.frontline, 0.8 + context.needs.needFrontline * 0.8),
@@ -233,7 +350,7 @@ function buildDimensionScores(candidate: Champion, context: RecommendationContex
       0.8 + context.needs.needPeel * 0.8,
     ),
     executionFit: scoreExecutionFit(candidate, context),
-    metaValue: scoreMetaValue(candidate),
+    metaValue: scoreMetaValue(candidate, context),
     comfortFit: scoreComfortFit(candidate, context),
   }
 
@@ -263,6 +380,45 @@ function getDimensionScore(
   return score
 }
 
+function getStrongestSynergySignal(candidate: Champion, context: RecommendationContext) {
+  return getCandidateSynergySignals(candidate, context).sort(
+    (left, right) => right.synergyScore * right.confidence.score - left.synergyScore * left.confidence.score,
+  )[0]
+}
+
+function getStrongestMatchupSignal(candidate: Champion, context: RecommendationContext) {
+  return getCandidateMatchupSignals(candidate, context).sort(
+    (left, right) =>
+      mapDeltaWinRateToScore(right.deltaWinRate, right.lanePressure) * right.confidence.score -
+      mapDeltaWinRateToScore(left.deltaWinRate, left.lanePressure) * left.confidence.score,
+  )[0]
+}
+
+function buildMetaReason(candidate: Champion, context: RecommendationContext): RecommendationReason | undefined {
+  if (!context.statsBundle) {
+    return undefined
+  }
+
+  const metaSignal = getChampionMetaSignal(context.statsBundle, candidate.id, context.draftState.currentPickRole)
+
+  if (!metaSignal || metaSignal.confidence.level === 'low') {
+    return undefined
+  }
+
+  if (metaSignal.tier !== 'S' && metaSignal.tier !== 'A') {
+    return undefined
+  }
+
+  return {
+    id: `${candidate.id}-meta-signal`,
+    type: 'META',
+    direction: 'pro',
+    label: 'Patch data supports this candidate',
+    explanation: `${candidate.name} shows strong ${context.draftState.currentPickRole.toLowerCase()} meta signals on patch ${metaSignal.patchVersion}.`,
+    impact: roundTo(mapMetaSignalToScore(metaSignal) * metaSignal.confidence.score, 0),
+  }
+}
+
 function buildReasons(
   candidate: Champion,
   context: RecommendationContext,
@@ -277,6 +433,24 @@ function buildReasons(
   const executionFit = getDimensionScore(dimensions, 'executionFit').score
   const comfortFit = getDimensionScore(dimensions, 'comfortFit').score
   const poolEntry = context.poolEntriesByChampionId[candidate.id]
+  const strongestSynergySignal = getStrongestSynergySignal(candidate, context)
+  const strongestMatchupSignal = getStrongestMatchupSignal(candidate, context)
+  const metaReason = buildMetaReason(candidate, context)
+
+  if (
+    strongestSynergySignal &&
+    strongestSynergySignal.synergyScore >= 8 &&
+    strongestSynergySignal.confidence.level !== 'low'
+  ) {
+    reasons.push({
+      id: `${candidate.id}-stats-synergy`,
+      type: 'SYNERGY',
+      direction: 'pro',
+      label: 'Pairing data reinforces ally fit',
+      explanation: `${candidate.name} has a strong recorded synergy signal with ${strongestSynergySignal.allyChampionId}.`,
+      impact: roundTo(strongestSynergySignal.synergyScore * strongestSynergySignal.confidence.score, 0),
+    })
+  }
 
   if (peelImpact >= 8 && context.needs.needPeel >= 0.3) {
     reasons.push({
@@ -302,6 +476,25 @@ function buildReasons(
     })
   }
 
+  if (
+    strongestMatchupSignal &&
+    (strongestMatchupSignal.deltaWinRate ?? 0) > 0.01 &&
+    strongestMatchupSignal.confidence.level !== 'low'
+  ) {
+    reasons.push({
+      id: `${candidate.id}-stats-counter`,
+      type: 'COUNTER',
+      direction: 'pro',
+      label: 'Historical matchup data is favorable',
+      explanation: `${candidate.name} shows a positive matchup delta into ${strongestMatchupSignal.opponentChampionId}.`,
+      impact: roundTo(
+        mapDeltaWinRateToScore(strongestMatchupSignal.deltaWinRate, strongestMatchupSignal.lanePressure) *
+          strongestMatchupSignal.confidence.score,
+        0,
+      ),
+    })
+  }
+
   if (enemyCounter >= 8) {
     reasons.push({
       id: `${candidate.id}-enemy-counter`,
@@ -324,6 +517,10 @@ function buildReasons(
         `${candidate.name} covers multiple current weaknesses instead of solving only one part of the draft.`,
       impact: roundTo(compRepair, 0),
     })
+  }
+
+  if (metaReason) {
+    reasons.push(metaReason)
   }
 
   if (context.recommendationMode === 'PERSONAL_POOL' && poolEntry && comfortFit >= 7) {
@@ -387,6 +584,9 @@ function buildTags(
   const peelImpact = getDimensionScore(dimensions, 'peelImpact').score
   const compRepair = getDimensionScore(dimensions, 'compRepair').score
   const comfortFit = getDimensionScore(dimensions, 'comfortFit').score
+  const metaSignal = context.statsBundle
+    ? getChampionMetaSignal(context.statsBundle, candidate.id, context.draftState.currentPickRole)
+    : undefined
 
   if (context.recommendationMode === 'PERSONAL_POOL' && context.poolEntriesByChampionId[candidate.id]) {
     tags.push('Inside pool')
@@ -414,6 +614,10 @@ function buildTags(
 
   if (getDimensionScore(dimensions, 'enemyCounter').score >= 8) {
     tags.push('Good into enemy comp')
+  }
+
+  if (metaSignal && (metaSignal.tier === 'S' || metaSignal.tier === 'A')) {
+    tags.push('Patch favored')
   }
 
   return unique(tags).slice(0, 3)
@@ -459,6 +663,7 @@ export function recommendChampionsForDraft({
   championsById,
   recommendationMode = draftState.recommendationMode,
   championPool,
+  statsBundle,
   topN = 5,
 }: RecommendChampionsForDraftInput): RecommendationCandidate[] {
   if (recommendationMode === 'PERSONAL_POOL' && !championPool) {
@@ -476,9 +681,10 @@ export function recommendChampionsForDraft({
     poolEntriesByChampionId: getPoolEntriesByChampionId(championPool),
     weights: getWeightsForMode(draftState.productMode, recommendationMode),
     needs: createNeeds(allyProfile, enemyProfile),
+    statsBundle,
   }
 
-  return getCandidateChampions({ draftState, championsById, recommendationMode, championPool })
+  return getCandidateChampions({ draftState, championsById, recommendationMode, championPool, statsBundle })
     .map((candidate) => toRecommendationCandidate(candidate, context))
     .sort((left, right) => right.breakdown.totalScore - left.breakdown.totalScore)
     .slice(0, topN)
