@@ -25,8 +25,10 @@ export function RecommendationPanel({ title, subtitle, recommendations }: Recomm
     <Panel eyebrow="Recommendation Engine" title={title} subtitle={subtitle}>
       <div className="space-y-4">
         {recommendations.map((recommendation, index) => {
-          const topDimensions = recommendation.breakdown.dimensions.slice(0, 3)
-          const primaryReason = recommendation.breakdown.reasons[0]
+          const topDimensions = [...recommendation.breakdown.dimensions]
+            .sort((left, right) => right.contribution - left.contribution)
+            .slice(0, 3)
+          const topReasons = recommendation.breakdown.reasons.slice(0, 2)
 
           return (
             <article key={`${recommendation.recommendationMode}-${recommendation.championId}`} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
@@ -68,12 +70,27 @@ export function RecommendationPanel({ title, subtitle, recommendations }: Recomm
                 ))}
               </div>
 
-              {primaryReason ? (
-                <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-3">
-                  <p className="text-sm font-medium text-emerald-200">{primaryReason.label}</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-300">{primaryReason.explanation}</p>
-                </div>
-              ) : null}
+              <div className="mt-4 space-y-3">
+                {topReasons.map((reason) => (
+                  <div
+                    key={reason.id}
+                    className={`rounded-2xl border p-3 ${
+                      reason.direction === 'pro'
+                        ? 'border-emerald-400/20 bg-emerald-400/5'
+                        : 'border-amber-400/20 bg-amber-400/5'
+                    }`}
+                  >
+                    <p
+                      className={`text-sm font-medium ${
+                        reason.direction === 'pro' ? 'text-emerald-200' : 'text-amber-200'
+                      }`}
+                    >
+                      {reason.label}
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">{reason.explanation}</p>
+                  </div>
+                ))}
+              </div>
             </article>
           )
         })}
