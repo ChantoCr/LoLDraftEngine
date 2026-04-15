@@ -41,13 +41,13 @@ export function LiveSessionPanel({
   return (
     <Panel
       eyebrow="Live Draft Session"
-      title="Summoner session"
-      subtitle="The project can support all Riot regions, including LAN. Manual editing is live now, and Riot / desktop sync use the same provider contract for future real integrations."
+      title="Riot account session"
+      subtitle="Use your Riot ID here: game name + tag line. RIOT_API mode requires the backend companion to be running with RIOT_API_KEY configured in `.env.local` or `.env` (not only `.env.example`). Riot can recognize the player and active game, but full champ-select sync still needs the desktop bridge."
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-3 sm:grid-cols-3">
           <label className="space-y-2 sm:col-span-1">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Game name</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Riot game name</span>
             <input
               value={identity.gameName}
               onChange={updateField('gameName')}
@@ -56,11 +56,11 @@ export function LiveSessionPanel({
             />
           </label>
           <label className="space-y-2 sm:col-span-1">
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Tag line</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Riot tag line</span>
             <input
               value={identity.tagLine}
               onChange={updateField('tagLine')}
-              placeholder="LAN"
+              placeholder="1234"
               className="w-full rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40"
             />
           </label>
@@ -98,6 +98,11 @@ export function LiveSessionPanel({
               </option>
             ))}
           </select>
+          <p className="text-xs leading-5 text-slate-500">
+            RIOT_API mode needs a valid backend <code>RIOT_API_KEY</code> in <code>.env.local</code> or <code>.env</code>,
+            then run <code>npm run server:dev</code>. DESKTOP_CLIENT mode does not use Riot recognition for live picks,
+            but it still needs the local bridge/backend process.
+          </p>
         </label>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">

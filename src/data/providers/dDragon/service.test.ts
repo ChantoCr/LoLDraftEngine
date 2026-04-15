@@ -20,7 +20,7 @@ describe('createDDragonStatsProvider', () => {
 
     expect(client.fetchChampionCollection).toHaveBeenCalledTimes(1)
     expect(firstBundle).toBe(secondBundle)
-    expect(firstBundle.patchVersion).toBe('15.8')
+    expect(firstBundle.patchVersion).toBe('15.8.1')
     expect(Object.keys(firstBundle.championsById)).toEqual(['braum', 'nautilus'])
   })
 })

@@ -34,4 +34,21 @@ describe('backend live api client', () => {
     expect(fetcher).toHaveBeenCalledWith('/api/live/session/recognize', expect.objectContaining({ method: 'POST' }))
     expect(response.sessionId).toBe('session-1')
   })
+
+  it('surfaces backend error payload messages for recognition failures', async () => {
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'RIOT_API_KEY is not configured on the backend companion.' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    )
+    const client = createBackendLiveApiClient({ fetcher, eventSourceFactory: vi.fn() as never })
+
+    await expect(
+      client.recognizePlayer({
+        identity: { gameName: 'Tester', tagLine: 'LAN', region: 'LAN' },
+        source: 'RIOT_API',
+      }),
+    ).rejects.toThrow('RIOT_API_KEY is not configured on the backend companion.')
+  })
 })

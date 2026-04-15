@@ -13,6 +13,26 @@ interface FetchChampionCollectionInput {
   locale?: string
 }
 
+function isExactDDragonVersion(patchVersion: PatchVersion) {
+  return /^\d+\.\d+\.\d+$/u.test(patchVersion)
+}
+
+function resolveRequestedPatchVersion(requestedPatchVersion: PatchVersion, availableVersions: PatchVersion[]) {
+  const normalizedRequestedPatchVersion = requestedPatchVersion.trim().toLowerCase()
+
+  if (normalizedRequestedPatchVersion === 'latest') {
+    return availableVersions[0] ?? requestedPatchVersion
+  }
+
+  if (availableVersions.includes(requestedPatchVersion)) {
+    return requestedPatchVersion
+  }
+
+  const matchedVersion = availableVersions.find((version) => version.startsWith(`${normalizedRequestedPatchVersion}.`))
+
+  return matchedVersion ?? requestedPatchVersion
+}
+
 export interface DDragonClient {
   fetchVersions(): Promise<PatchVersion[]>
   fetchChampionCollection(input: FetchChampionCollectionInput): Promise<DDragonChampionCollectionResponse>
@@ -48,10 +68,14 @@ export function createDDragonClient({
     fetchVersions() {
       return fetchJson<PatchVersion[]>(fetcher, buildDDragonVersionsUrl(baseUrl))
     },
-    fetchChampionCollection({ patchVersion, locale = 'en_US' }) {
+    async fetchChampionCollection({ patchVersion, locale = 'en_US' }) {
+      const resolvedPatchVersion = isExactDDragonVersion(patchVersion)
+        ? patchVersion
+        : resolveRequestedPatchVersion(patchVersion, await this.fetchVersions())
+
       return fetchJson<DDragonChampionCollectionResponse>(
         fetcher,
-        buildDDragonChampionCollectionUrl(patchVersion, locale, baseUrl),
+        buildDDragonChampionCollectionUrl(resolvedPatchVersion, locale, baseUrl),
       )
     },
   }

@@ -1,24 +1,31 @@
+import { DesktopClientBridge } from '@server/live/desktopClient/bridge'
 import type { BackendLiveDraftAdapter } from '@server/live/types'
 
-export function createDesktopClientBackendLiveDraftAdapter(): BackendLiveDraftAdapter {
+interface CreateDesktopClientBackendLiveDraftAdapterInput {
+  bridge: DesktopClientBridge
+}
+
+export function createDesktopClientBackendLiveDraftAdapter({
+  bridge,
+}: CreateDesktopClientBackendLiveDraftAdapterInput): BackendLiveDraftAdapter {
   return {
     source: 'DESKTOP_CLIENT',
     async recognizePlayer(identity) {
       return {
-        status: 'error',
-        message: `Desktop-client live draft recognition for ${identity.region} is scaffolded, but still requires a local companion bridge capable of reading champion-select state.`,
+        status: 'connected',
+        message: `Desktop-client bridge session opened for ${identity.gameName}#${identity.tagLine} (${identity.region}). Waiting for local client ingestion events.`,
       }
     },
-    async subscribe(_session, emitEvent) {
+    async subscribe(session, emitEvent) {
       emitEvent({
         type: 'session-update',
         session: {
-          status: 'error',
-          message:
-            'Desktop-client live draft streaming is not implemented yet. Build the local bridge behind this adapter next.',
+          status: 'connected',
+          message: 'Desktop-client stream subscribed. Waiting for bridge draft-state events.',
         },
       })
-      return () => {}
+
+      return bridge.subscribe(session.id, emitEvent)
     },
   }
 }

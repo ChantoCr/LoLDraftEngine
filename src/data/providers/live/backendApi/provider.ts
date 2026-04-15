@@ -26,18 +26,23 @@ export function createBackendApiLiveDraftProvider({
           message: response.message,
         }
       } catch (error) {
+        const fallbackMessageBySource: Record<BackendLiveDraftSource, string> = {
+          MOCK: 'Unable to start the mock live provider.',
+          RIOT_API:
+            'Unable to reach the local live backend. Start `npm run server:dev` and put `RIOT_API_KEY=...` in `.env.local` or `.env`.',
+          DESKTOP_CLIENT:
+            'Unable to reach the local desktop-companion backend. Start `npm run server:dev` before opening a desktop session.',
+        }
+
         return {
           player: identity,
           status: 'error',
           syncMode: source,
-          message:
-            error instanceof Error
-              ? error.message
-              : 'Unable to connect to the local live-draft backend. Ensure the companion API is running.',
+          message: error instanceof Error ? error.message : fallbackMessageBySource[source],
         }
       }
     },
-    async subscribeToLiveDraft(session, onDraftState) {
+    async subscribeToLiveDraft(session, onDraftState, onSessionUpdate) {
       if (!session.sessionId) {
         return () => {}
       }
@@ -46,6 +51,7 @@ export function createBackendApiLiveDraftProvider({
         sessionId: session.sessionId,
         source,
         onDraftState,
+        onSessionUpdate,
       })
     },
   }

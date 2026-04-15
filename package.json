@@ -10,6 +10,8 @@
     "server:build": "tsc -p tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "build": "npm run build:client && npm run server:build",
     "server:start": "tsx server/index.ts",
+    "desktop:mock": "tsx server/live/desktopClient/runMockCompanion.ts",
+    "desktop:file": "tsx server/live/desktopClient/runFileCompanion.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",

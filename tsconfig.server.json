@@ -26,7 +26,8 @@
     "server/**/*.ts",
     "src/domain/**/*.ts",
     "src/data/mock/**/*.ts",
-    "src/data/providers/live/backendApi/types.ts"
+    "src/data/providers/live/backendApi/types.ts",
+    "src/testing/fixtures/stats/**/*.ts"
   ],
   "exclude": ["src/**/*.test.ts", "server/**/*.test.ts", "src/**/*.tsx"]
 }

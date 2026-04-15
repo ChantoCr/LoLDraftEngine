@@ -1,42 +1,31 @@
-import type { Champion, Role } from '@/domain/champion/types'
+import type { Role } from '@/domain/champion/types'
+import type { ChampionCatalogEntry } from '@/domain/champion/catalog'
 import { ROLE_ORDER } from '@/domain/draft/constants'
 import { getUnavailableChampionIds } from '@/domain/draft/selectors'
 import type { DraftState, TeamDraft, TeamSide } from '@/domain/draft/types'
 import { Panel } from '@/shared/ui/Panel'
+import { ChampionSearchSelect } from './ChampionSearchSelect'
 
 interface DraftBoardProps {
   draftState: DraftState
-  championsById: Record<string, Champion>
+  championCatalog: ChampionCatalogEntry[]
+  championNamesById: Record<string, string>
+  dataWarnings?: string[]
   onAssignChampion: (side: TeamSide, role: Role, championId: string) => void
   onClearChampion: (side: TeamSide, role: Role) => void
   onSelectCurrentRole: (role: Role) => void
 }
 
-function getChampionName(championsById: Record<string, Champion>, championId?: string) {
+function getChampionName(championNamesById: Record<string, string>, championId?: string) {
   if (!championId) {
     return 'Open slot'
   }
 
-  return championsById[championId]?.name ?? championId
+  return championNamesById[championId] ?? championId
 }
 
 function getRoleSlot(teamDraft: TeamDraft, role: Role) {
   return teamDraft.picks.find((slot) => slot.role === role)
-}
-
-function getRoleChampionOptions(
-  championsById: Record<string, Champion>,
-  unavailableChampionIds: string[],
-  role: Role,
-  selectedChampionId?: string,
-) {
-  return Object.values(championsById)
-    .filter(
-      (champion) =>
-        champion.roles.includes(role) &&
-        (!unavailableChampionIds.includes(champion.id) || champion.id === selectedChampionId),
-    )
-    .sort((left, right) => left.name.localeCompare(right.name))
 }
 
 function TeamColumn({
@@ -44,7 +33,8 @@ function TeamColumn({
   tone,
   teamDraft,
   draftState,
-  championsById,
+  championCatalog,
+  championNamesById,
   onAssignChampion,
   onClearChampion,
   onSelectCurrentRole,
@@ -53,7 +43,8 @@ function TeamColumn({
   tone: 'ally' | 'enemy'
   teamDraft: TeamDraft
   draftState: DraftState
-  championsById: Record<string, Champion>
+  championCatalog: ChampionCatalogEntry[]
+  championNamesById: Record<string, string>
   onAssignChampion: (side: TeamSide, role: Role, championId: string) => void
   onClearChampion: (side: TeamSide, role: Role) => void
   onSelectCurrentRole: (role: Role) => void
@@ -71,8 +62,7 @@ function TeamColumn({
 
       {ROLE_ORDER.map((role) => {
         const slot = getRoleSlot(teamDraft, role)
-        const championName = getChampionName(championsById, slot?.championId)
-        const options = getRoleChampionOptions(championsById, unavailableChampionIds, role, slot?.championId)
+        const championName = getChampionName(championNamesById, slot?.championId)
         const isCurrentRole = draftState.currentPickRole === role
 
         return (
@@ -94,36 +84,17 @@ function TeamColumn({
             </div>
             <div className="mt-2 text-lg font-medium text-white">{championName}</div>
 
-            <div className="mt-3 flex gap-2">
-              <select
-                value={slot?.championId ?? ''}
-                onChange={(event) => {
-                  if (!event.target.value) {
-                    onClearChampion(side, role)
-                    return
-                  }
-
-                  onAssignChampion(side, role, event.target.value)
-                }}
-                className="w-full rounded-2xl border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40"
-              >
-                <option value="">Open slot</option>
-                {options.map((champion) => (
-                  <option key={`${role}-${champion.id}`} value={champion.id}>
-                    {champion.name}
-                  </option>
-                ))}
-              </select>
-
-              {slot?.championId ? (
-                <button
-                  type="button"
-                  onClick={() => onClearChampion(side, role)}
-                  className="rounded-2xl border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-900"
-                >
-                  Clear
-                </button>
-              ) : null}
+            <div className="mt-3">
+              <ChampionSearchSelect
+                role={role}
+                selectedChampionId={slot?.championId}
+                options={championCatalog}
+                disabledChampionIds={unavailableChampionIds}
+                onSelectChampion={(championId) => onAssignChampion(side, role, championId)}
+                onClearChampion={() => onClearChampion(side, role)}
+                placeholder={`Search any champion for ${role.toLowerCase()}...`}
+                restrictToRole={false}
+              />
             </div>
           </div>
         )
@@ -134,7 +105,9 @@ function TeamColumn({
 
 export function DraftBoard({
   draftState,
-  championsById,
+  championCatalog,
+  championNamesById,
+  dataWarnings = [],
   onAssignChampion,
   onClearChampion,
   onSelectCurrentRole,
@@ -143,29 +116,52 @@ export function DraftBoard({
     <Panel
       eyebrow="Live Draft Builder"
       title="Draft board"
-      subtitle="Interactive manual drafting is live. Pick champions by role, switch the current pick role, and recompute recommendations instantly."
+      subtitle="Interactive manual drafting is live. Every champion can now be searched in every lane from a single combobox, and recommendations recompute instantly."
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <TeamColumn
-          label="Ally team"
-          tone="ally"
-          teamDraft={draftState.allyTeam}
-          draftState={draftState}
-          championsById={championsById}
-          onAssignChampion={onAssignChampion}
-          onClearChampion={onClearChampion}
-          onSelectCurrentRole={onSelectCurrentRole}
-        />
-        <TeamColumn
-          label="Enemy team"
-          tone="enemy"
-          teamDraft={draftState.enemyTeam}
-          draftState={draftState}
-          championsById={championsById}
-          onAssignChampion={onAssignChampion}
-          onClearChampion={onClearChampion}
-          onSelectCurrentRole={onSelectCurrentRole}
-        />
+      <div className="space-y-4">
+        {dataWarnings.length > 0 ? (
+          <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-amber-100" role="alert">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-200">Data sync warning</p>
+            <p className="mt-2 text-sm text-amber-50">
+              Manual draft interactions are still available, but one or more backend calls failed. Current fallback data remains active.
+            </p>
+            <div className="mt-3 space-y-2">
+              {dataWarnings.map((warning) => (
+                <pre
+                  key={warning}
+                  className="overflow-x-auto rounded-2xl border border-amber-300/20 bg-slate-950/40 px-3 py-2 text-xs whitespace-pre-wrap break-words text-amber-100"
+                >
+                  {warning}
+                </pre>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <TeamColumn
+            label="Ally team"
+            tone="ally"
+            teamDraft={draftState.allyTeam}
+            draftState={draftState}
+            championCatalog={championCatalog}
+            championNamesById={championNamesById}
+            onAssignChampion={onAssignChampion}
+            onClearChampion={onClearChampion}
+            onSelectCurrentRole={onSelectCurrentRole}
+          />
+          <TeamColumn
+            label="Enemy team"
+            tone="enemy"
+            teamDraft={draftState.enemyTeam}
+            draftState={draftState}
+            championCatalog={championCatalog}
+            championNamesById={championNamesById}
+            onAssignChampion={onAssignChampion}
+            onClearChampion={onClearChampion}
+            onSelectCurrentRole={onSelectCurrentRole}
+          />
+        </div>
       </div>
     </Panel>
   )

@@ -2,6 +2,14 @@
 
 Interactive League of Legends Draft Intelligence Platform scaffolded with React, TypeScript, Tailwind CSS, AGENTS.md, and skill definitions for Pi-driven development.
 
+## Important project context files
+
+Read these first when continuing work or starting a new chat:
+
+- `PROJECT_BRIEFING.md` — full project briefing and technical context
+- `HANDOFF.md` — concise handoff summary for future sessions
+- `NEXT_STEPS.md` — prioritized roadmap and implementation order
+
 ## Getting started
 
 Frontend only:
@@ -10,6 +18,24 @@ Frontend only:
 npm install
 npm run dev
 ```
+
+Manual drafting now loads the champion roster directly from Data Dragon in the browser, so the draft board can expose the full champion list even when the local backend is not running.
+
+The app supports:
+- the special patch token `latest`
+- automatic resolution of `latest` to the newest Data Dragon patch
+- explicit patch pinning from the UI, such as `16.8.1`
+
+### Important Riot env note
+`.env.example` is only a template.
+To use `RIOT_API`, create a real env file:
+
+```bash
+cp .env.example .env.local
+```
+
+Then set your own values in `.env.local`, especially:
+- `RIOT_API_KEY=...`
 
 Frontend + backend companion in two terminals:
 
@@ -32,6 +58,8 @@ npm run server:start
 - `npm run server:dev` — run the backend companion in watch mode
 - `npm run server:build` — compile the backend companion scaffold
 - `npm run server:start` — start the backend companion with `tsx`
+- `npm run desktop:mock -- <sessionId>` — post a mock desktop-companion draft stream into an existing desktop-client session
+- `npm run desktop:file -- <sessionId> <draftState.json>` — run a local desktop companion that polls a bridge-compatible draft-state json file and ingests updates into the backend
 - `npm run preview` — preview the production build locally
 - `npm run lint` — run ESLint
 - `npm run test` — run Vitest in watch mode
@@ -138,33 +166,80 @@ Implemented endpoints:
 - `GET /api/health`
 - `POST /api/live/session/recognize`
 - `GET /api/live/session/:id/events`
+- `POST /api/live/desktop-client/session/:id/ingest`
+- `POST /api/live/desktop-client/mock/session/:id/mock-sequence`
+- `GET /api/stats/patches`
+- `GET /api/stats/patch/:patchVersion/catalog`
+- `GET /api/stats/patch/:patchVersion/bundle`
+- `GET /api/champion-traits/patch/:patchVersion/scaffold`
 
 Current backend adapters:
 
-- `MOCK` — working SSE draft timeline
-- `RIOT_API` — scaffolded backend contract
-- `DESKTOP_CLIENT` — scaffolded backend contract
+- `MOCK` — working mock live draft provider
+- `RIOT_API` — region-aware Riot recognition scaffold with Americas / Europe / Asia / SEA routing
+- `DESKTOP_CLIENT` — local bridge contract, ingest API, mock runner, and file-based bridge-compatible runtime scaffold
 
 SSE event types:
 
 - `draft-state`
 - `session-update`
 
+Example environment variables are in `.env.example`.
+
+## Desktop companion notes
+
+The desktop companion bridge now supports:
+- ingest acknowledgements
+- optional auth via `DESKTOP_COMPANION_TOKEN`
+- heartbeat/session health updates
+- companion metadata
+- retry-aware local runtime posting
+
+What is still missing:
+- a real local LoL client / LCU source adapter
+- a production champ-select mapper into internal `DraftState`
+
+## Riot live notes
+
+`RIOT_API` mode can currently help with:
+- Riot account recognition
+- summoner lookup
+- active-game detection
+
+It cannot provide real champ-select pick/ban streaming through public Riot APIs alone.
+
+For true live draft sync, the long-term path is:
+- `DESKTOP_CLIENT`
+- local companion process
+- local champ-select source adapter
+
 ## Current progress
 
 - deterministic draft-state, composition, and recommendation engine are implemented
 - Vitest coverage exists for draft operations, composition analysis, recommendation regression, stats ingestion, and bundle merging
-- Data Dragon and generic external stats adapters are scaffolded
-- the draft board is now interactive through manual champion selection by role
+- Data Dragon loading now supports the full champion roster and latest patch resolution
+- the draft board is interactive and now supports visible clickable champion search results
+- manual draft mode can place any champion in any lane slot for exploration
+- a patch selector UI now exists, including `latest` and explicit patch pinning
 - stats signals are blended into recommendation scoring without replacing deterministic rules
 - a live-session system now supports manual mode, mock live feed mode, and backend-driven Riot / desktop-client provider modes
-- a mock live draft provider can stream draft snapshots into the workspace through the same provider contract future real integrations will use
-- a local backend API scaffold now exists for summoner recognition and champion-select event streaming
 - region support is designed to be multi-region, including LAN, LAS, NA, EUW, EUN, KR, BR, OCE, JP, MENA, SEA regions, and PBE
+- a champion trait scaffold dataset can now be generated for broader champion coverage
+- desktop-client bridge ingestion routes now exist, including auth/heartbeat-aware ingest handling
+- desktop companion mock and file-based helper runtimes now exist
+
+## Validation status
+
+Current validated state:
+- `npm run test:run` ✅
+- `npm run build` ✅
+- 28 test files
+- 53 tests passing
 
 ## Next likely milestones
 
-1. implement the real local backend companion that serves `/api/live/session/recognize` and `/api/live/session/:id/events`
-2. ingest real patch meta / matchup / synergy data through the external stats adapter
-3. wire OpenAI + Pi flows for the AI Coach layer
-4. expand scenario fixtures, bans UI, and draft comparison workflows
+1. implement the real local desktop companion source adapter for LoL client / LCU-style champ-select data
+2. persist curated champion trait datasets with patch-aware overrides
+3. ingest real patch meta / matchup / synergy data through the external stats adapter
+4. wire OpenAI + Pi flows for the AI Coach layer
+5. expand draft history, what-if, and comparison workflows

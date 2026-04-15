@@ -10,6 +10,9 @@ export interface LiveSessionRecord {
   message?: string
   createdAt: string
   updatedAt: string
+  lastHeartbeatAt?: string
+  companionInstanceId?: string
+  lastIngestEventId?: string
 }
 
 export interface RecognizedLiveSession {

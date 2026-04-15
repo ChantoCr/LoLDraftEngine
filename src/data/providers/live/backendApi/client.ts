@@ -42,6 +42,38 @@ function parseJsonEvent<TPayload>(event: MessageEvent<string>) {
   return JSON.parse(event.data) as TPayload
 }
 
+function getMessageFromPayload(payload: unknown) {
+  if (!payload || typeof payload !== 'object') {
+    return undefined
+  }
+
+  const candidate = payload as Record<string, unknown>
+
+  for (const field of ['error', 'message', 'details']) {
+    if (typeof candidate[field] === 'string' && candidate[field].trim().length > 0) {
+      return candidate[field].trim()
+    }
+  }
+
+  return undefined
+}
+
+async function readBackendErrorMessage(response: Response, fallbackMessage: string) {
+  const bodyText = await response.text()
+  const trimmedBody = bodyText.trim()
+
+  if (!trimmedBody) {
+    return fallbackMessage
+  }
+
+  try {
+    const payload = JSON.parse(trimmedBody) as unknown
+    return getMessageFromPayload(payload) ?? trimmedBody
+  } catch {
+    return trimmedBody
+  }
+}
+
 export function createBackendLiveApiClient({
   baseUrl = DEFAULT_BASE_URL,
   fetcher = fetch,
@@ -49,16 +81,24 @@ export function createBackendLiveApiClient({
 }: CreateBackendLiveApiClientInput = {}): BackendLiveApiClient {
   return {
     async recognizePlayer(request) {
-      const response = await fetcher(buildRecognizePlayerUrl(baseUrl), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      })
+      let response: Response
+
+      try {
+        response = await fetcher(buildRecognizePlayerUrl(baseUrl), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown network error.'
+        throw new Error(`Live API recognize request failed: ${message}`)
+      }
 
       if (!response.ok) {
-        throw new Error(`Live API recognize failed: ${response.status} ${response.statusText}`)
+        const fallbackMessage = `Live API recognize failed: ${response.status} ${response.statusText}`
+        throw new Error(await readBackendErrorMessage(response, fallbackMessage))
       }
 
       return (await response.json()) as RecognizePlayerResponse

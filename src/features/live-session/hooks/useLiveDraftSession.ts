@@ -104,14 +104,26 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
       return
     }
 
-    unsubscribeRef.current = await provider.subscribeToLiveDraft(recognizedSession, (draftState) => {
-      draftStateCallbackRef.current(draftState)
-      setSession((currentSession) => ({
-        ...currentSession,
-        status: 'connected',
-        lastSyncAt: new Date().toISOString(),
-      }))
-    })
+    unsubscribeRef.current = await provider.subscribeToLiveDraft(
+      recognizedSession,
+      (draftState) => {
+        draftStateCallbackRef.current(draftState)
+        setSession((currentSession) => ({
+          ...currentSession,
+          status: 'connected',
+          lastSyncAt: new Date().toISOString(),
+        }))
+      },
+      (partialSession) => {
+        setSession((currentSession) => ({
+          ...currentSession,
+          ...partialSession,
+          status: partialSession.status ?? currentSession.status,
+          message: partialSession.message ?? currentSession.message,
+          lastSyncAt: new Date().toISOString(),
+        }))
+      },
+    )
   }, [identity, providers, syncMode])
 
   const updateSyncMode = useCallback((nextSyncMode: LiveDraftSyncMode) => {

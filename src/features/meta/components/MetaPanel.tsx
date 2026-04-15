@@ -5,20 +5,32 @@ import { Panel } from '@/shared/ui/Panel'
 
 interface MetaPanelProps {
   draftState: DraftState
+  selectedPatchVersion: string
+  availablePatchVersions: string[]
+  isPatchVersionsLoading?: boolean
+  patchVersionsError?: string
+  onPatchVersionChange: (patchVersion: string) => void
   onRecommendationModeChange: (recommendationMode: RecommendationMode) => void
   onCurrentRoleChange: (role: Role) => void
 }
 
 export function MetaPanel({
   draftState,
+  selectedPatchVersion,
+  availablePatchVersions,
+  isPatchVersionsLoading = false,
+  patchVersionsError,
+  onPatchVersionChange,
   onRecommendationModeChange,
   onCurrentRoleChange,
 }: MetaPanelProps) {
   const items = [
-    { label: 'Patch', value: draftState.patchVersion },
+    { label: 'Loaded patch', value: draftState.patchVersion },
     { label: 'Mode', value: PRODUCT_MODE_LABELS[draftState.productMode] },
     { label: 'Available candidates', value: String(draftState.availableChampionIds.length) },
   ]
+
+  const patchOptions = ['latest', ...availablePatchVersions.filter((patchVersion) => patchVersion !== 'latest')]
 
   return (
     <Panel
@@ -33,6 +45,29 @@ export function MetaPanel({
             <p className="mt-2 text-sm font-medium text-slate-200">{item.value}</p>
           </div>
         ))}
+
+        <label className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Requested patch</p>
+          <select
+            value={selectedPatchVersion}
+            onChange={(event) => onPatchVersionChange(event.target.value)}
+            className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-400/40"
+          >
+            {patchOptions.map((patchVersion) => (
+              <option key={patchVersion} value={patchVersion}>
+                {patchVersion === 'latest' ? 'latest · newest Data Dragon patch' : patchVersion}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            {isPatchVersionsLoading
+              ? 'Refreshing available Data Dragon versions...'
+              : selectedPatchVersion === 'latest'
+                ? `Latest mode is active. The resolved patch currently loaded is ${draftState.patchVersion}.`
+                : `Patch ${selectedPatchVersion} is requested. The resolved patch currently loaded is ${draftState.patchVersion}.`}
+          </p>
+          {patchVersionsError ? <p className="mt-2 text-xs text-amber-300">{patchVersionsError}</p> : null}
+        </label>
 
         <label className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Recommendation mode</p>

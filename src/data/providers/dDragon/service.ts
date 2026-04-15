@@ -31,13 +31,14 @@ export function createDDragonStatsProvider({
       }
 
       const payload = await client.fetchChampionCollection({ patchVersion, locale })
+      const resolvedPatchVersion = payload.version ?? patchVersion
       const champions = normalizeDDragonChampionCollection(payload, {
-        patchVersion,
+        patchVersion: resolvedPatchVersion,
         locale,
         fetchedAt: now(),
       })
       const bundle = createPatchDataBundle({
-        patchVersion,
+        patchVersion: resolvedPatchVersion,
         champions,
       })
 

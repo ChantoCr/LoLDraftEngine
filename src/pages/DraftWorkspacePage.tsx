@@ -1,19 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createLiveDraftProviders } from '@/data/providers/live'
 import { mockChampionMap, mockChampions } from '@/data/mock/champions'
 import { mockChampionPoolProfile, mockDraftState } from '@/data/mock/draft'
 import { mockStatsBundle } from '@/data/mock/stats'
-import { analyzeDraftComposition } from '@/domain/composition/analyzer'
+import { buildChampionCatalogFromStatsBundle, createChampionCatalogEntry } from '@/domain/champion/catalog'
+import { buildChampionMapFromScaffoldDataset } from '@/domain/champion-traits/scaffold'
 import type { Role } from '@/domain/champion/types'
+import { analyzeDraftComposition } from '@/domain/composition/analyzer'
 import {
+  addBan,
   assignChampionToSlot,
   clearChampionFromSlot,
+  removeBan,
   setCurrentPickRole,
   setRecommendationMode,
 } from '@/domain/draft/operations'
 import { recommendChampionsForDraft } from '@/domain/recommendation/engine'
 import { AICoachPanel } from '@/features/coach/components/AICoachPanel'
 import { CompositionPanel } from '@/features/composition/components/CompositionPanel'
+import { BanPanel } from '@/features/draft-board/components/BanPanel'
 import { DraftBoard } from '@/features/draft-board/components/DraftBoard'
 import { LiveSessionPanel } from '@/features/live-session/components/LiveSessionPanel'
 import { useLiveDraftSession } from '@/features/live-session/hooks/useLiveDraftSession'
@@ -21,16 +26,103 @@ import { MetaPanel } from '@/features/meta/components/MetaPanel'
 import { ChampionPoolPanel } from '@/features/pool/components/ChampionPoolPanel'
 import { RecommendationPanel } from '@/features/recommendations/components/RecommendationPanel'
 import { StatsIntelPanel } from '@/features/stats/components/StatsIntelPanel'
+import { useAvailablePatchVersions } from '@/features/stats/hooks/useAvailablePatchVersions'
+import { usePatchStatsBundle } from '@/features/stats/hooks/usePatchStatsBundle'
 
 function createInteractiveDraftState() {
   return {
     ...mockDraftState,
+    patchVersion: 'latest',
     availableChampionIds: mockChampions.map((champion) => champion.id),
   }
 }
 
+function createFallbackChampionCatalog() {
+  return Object.values(mockChampionMap).map((champion) =>
+    createChampionCatalogEntry(champion.id, champion.name, champion.roles),
+  )
+}
+
+function haveSameChampionIds(left: string[], right: string[]) {
+  if (left.length !== right.length) {
+    return false
+  }
+
+  return left.every((championId, index) => championId === right[index])
+}
+
 export function DraftWorkspacePage() {
   const [draftState, setDraftState] = useState(createInteractiveDraftState)
+  const [selectedPatchVersion, setSelectedPatchVersion] = useState('latest')
+  const fallbackChampionCatalog = useMemo(() => createFallbackChampionCatalog(), [])
+  const {
+    patchVersions,
+    isLoading: isPatchVersionsLoading,
+    error: patchVersionsError,
+  } = useAvailablePatchVersions()
+  const { bundle: fetchedStatsBundle, error: statsBundleError } = usePatchStatsBundle(selectedPatchVersion, mockStatsBundle)
+  const activeStatsBundle = fetchedStatsBundle ?? mockStatsBundle
+  const activeChampionMap = useMemo(
+    () => buildChampionMapFromScaffoldDataset(activeStatsBundle, mockChampionMap),
+    [activeStatsBundle],
+  )
+
+  const championCatalog = useMemo(() => {
+    const statsCatalog = buildChampionCatalogFromStatsBundle(activeStatsBundle)
+    return statsCatalog.length > 0 ? statsCatalog : fallbackChampionCatalog
+  }, [activeStatsBundle, fallbackChampionCatalog])
+
+  const championNamesById = useMemo(() => {
+    return championCatalog.reduce<Record<string, string>>(
+      (accumulator, champion) => {
+        accumulator[champion.id] = champion.name
+        return accumulator
+      },
+      { ...Object.fromEntries(Object.values(activeChampionMap).map((champion) => [champion.id, champion.name])) },
+    )
+  }, [activeChampionMap, championCatalog])
+
+  useEffect(() => {
+    const nextAvailableChampionIds = championCatalog.map((champion) => champion.id)
+
+    if (nextAvailableChampionIds.length === 0) {
+      return
+    }
+
+    setDraftState((currentDraftState) => {
+      const hasSamePatchVersion = currentDraftState.patchVersion === activeStatsBundle.patchVersion
+      const hasSameAvailableChampionIds = haveSameChampionIds(currentDraftState.availableChampionIds, nextAvailableChampionIds)
+
+      if (hasSamePatchVersion && hasSameAvailableChampionIds) {
+        return currentDraftState
+      }
+
+      return {
+        ...currentDraftState,
+        patchVersion: activeStatsBundle.patchVersion,
+        availableChampionIds: nextAvailableChampionIds,
+      }
+    })
+  }, [activeStatsBundle.patchVersion, championCatalog])
+
+  const draftBoardWarnings = useMemo(() => {
+    const warnings: string[] = []
+
+    if (statsBundleError) {
+      warnings.push(`Data Dragon sync failed\n${statsBundleError}`)
+    }
+
+    if (patchVersionsError) {
+      warnings.push(`Data Dragon patch listing failed\n${patchVersionsError}`)
+    }
+
+    return warnings
+  }, [patchVersionsError, statsBundleError])
+
+  const handleRemoteDraftState = useCallback((incomingDraftState: typeof draftState) => {
+    setDraftState(incomingDraftState)
+  }, [])
+
   const liveDraftProviders = useMemo(() => createLiveDraftProviders(), [])
   const {
     identity,
@@ -42,27 +134,27 @@ export function DraftWorkspacePage() {
     stopSession,
   } = useLiveDraftSession({
     providers: liveDraftProviders,
-    onDraftState: setDraftState,
+    onDraftState: handleRemoteDraftState,
   })
 
   const derivedState = useMemo(() => {
     const compositionProfile = analyzeDraftComposition({
       draftState,
-      championsById: mockChampionMap,
+      championsById: activeChampionMap,
     })
     const bestOverallRecommendations = recommendChampionsForDraft({
       draftState,
-      championsById: mockChampionMap,
+      championsById: activeChampionMap,
       recommendationMode: 'BEST_OVERALL',
-      statsBundle: mockStatsBundle,
+      statsBundle: activeStatsBundle,
       topN: 3,
     })
     const personalPoolRecommendations = recommendChampionsForDraft({
       draftState,
-      championsById: mockChampionMap,
+      championsById: activeChampionMap,
       recommendationMode: 'PERSONAL_POOL',
       championPool: mockChampionPoolProfile,
-      statsBundle: mockStatsBundle,
+      statsBundle: activeStatsBundle,
       topN: 3,
     })
 
@@ -76,9 +168,9 @@ export function DraftWorkspacePage() {
       compositionProfile,
       bestOverallRecommendations,
       personalPoolRecommendations,
-      coachSummary: `The current draft is most sensitive to ${firstGap}. ${bestOverallLabel} is the strongest theoretical answer, while ${bestPoolLabel} is the best current pool-aware option. Structured patch signals are now being blended into synergy, matchup, and meta scoring without replacing the deterministic engine.`,
+      coachSummary: `The current draft is most sensitive to ${firstGap}. ${bestOverallLabel} is the strongest theoretical answer, while ${bestPoolLabel} is the best current pool-aware option. Structured patch signals are blended into synergy, matchup, and meta scoring, while the deterministic engine remains the source of truth.`,
     }
-  }, [draftState])
+  }, [activeChampionMap, activeStatsBundle, draftState])
 
   function handleAssignChampion(side: 'ALLY' | 'ENEMY', role: Role, championId: string) {
     setDraftState((currentDraftState) => assignChampionToSlot(currentDraftState, side, role, championId))
@@ -86,6 +178,14 @@ export function DraftWorkspacePage() {
 
   function handleClearChampion(side: 'ALLY' | 'ENEMY', role: Role) {
     setDraftState((currentDraftState) => clearChampionFromSlot(currentDraftState, side, role))
+  }
+
+  function handleAddBan(side: 'ALLY' | 'ENEMY', championId: string) {
+    setDraftState((currentDraftState) => addBan(currentDraftState, side, championId))
+  }
+
+  function handleRemoveBan(side: 'ALLY' | 'ENEMY', championId: string) {
+    setDraftState((currentDraftState) => removeBan(currentDraftState, side, championId))
   }
 
   function handleCurrentRoleChange(role: Role) {
@@ -110,11 +210,21 @@ export function DraftWorkspacePage() {
         />
 
         <DraftBoard
-          championsById={mockChampionMap}
           draftState={draftState}
+          championCatalog={championCatalog}
+          championNamesById={championNamesById}
+          dataWarnings={draftBoardWarnings}
           onAssignChampion={handleAssignChampion}
           onClearChampion={handleClearChampion}
           onSelectCurrentRole={handleCurrentRoleChange}
+        />
+
+        <BanPanel
+          draftState={draftState}
+          championCatalog={championCatalog}
+          championNamesById={championNamesById}
+          onAddBan={handleAddBan}
+          onRemoveBan={handleRemoveBan}
         />
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -134,16 +244,21 @@ export function DraftWorkspacePage() {
       <div className="space-y-6">
         <MetaPanel
           draftState={draftState}
+          selectedPatchVersion={selectedPatchVersion}
+          availablePatchVersions={patchVersions}
+          isPatchVersionsLoading={isPatchVersionsLoading}
+          patchVersionsError={patchVersionsError}
+          onPatchVersionChange={setSelectedPatchVersion}
           onRecommendationModeChange={handleRecommendationModeChange}
           onCurrentRoleChange={handleCurrentRoleChange}
         />
         <StatsIntelPanel
-          statsBundle={mockStatsBundle}
+          statsBundle={activeStatsBundle}
           currentRole={draftState.currentPickRole}
-          championsById={mockChampionMap}
+          championsById={activeChampionMap}
         />
         <CompositionPanel compositionProfile={derivedState.compositionProfile} />
-        <ChampionPoolPanel championPool={mockChampionPoolProfile} championsById={mockChampionMap} />
+        <ChampionPoolPanel championPool={mockChampionPoolProfile} championsById={activeChampionMap} />
         <AICoachPanel summary={derivedState.coachSummary} />
       </div>
     </div>
