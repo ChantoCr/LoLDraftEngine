@@ -1,10 +1,6 @@
-import type { DraftState } from '@/domain/draft/types'
+import type { LiveDraftConnectionStatus } from '@/domain/live/types'
 import type { DesktopClientIngestAck, DesktopClientIngestRequest } from '@server/live/desktopClient/types'
-
-export interface DesktopCompanionDraftSource {
-  readDraftState(): Promise<DraftState | undefined>
-  describe(): string
-}
+import type { DesktopCompanionDraftSource, DesktopCompanionSourceSnapshot } from '@server/live/desktopClient/source'
 
 interface PostDesktopClientIngestInput {
   sessionId: string
@@ -102,6 +98,14 @@ export async function postDesktopClientIngestWithRetry({
   throw lastError ?? new Error('Desktop companion ingest failed after retry exhaustion.')
 }
 
+function toSessionStatus(snapshot: DesktopCompanionSourceSnapshot): LiveDraftConnectionStatus {
+  return snapshot.status === 'active' ? 'connected' : 'connecting'
+}
+
+function buildSessionSignature(status: LiveDraftConnectionStatus, message: string | undefined) {
+  return JSON.stringify({ status, message: message ?? '' })
+}
+
 export function startDesktopCompanionRuntime({
   sessionId,
   source,
@@ -118,8 +122,10 @@ export function startDesktopCompanionRuntime({
   let stopped = false
   let sequenceNumber = 0
   let lastPostedDraftSignature: string | undefined
+  let lastPostedSessionSignature: string | undefined
   let pollTimer: ReturnType<typeof setInterval> | undefined
   let heartbeatTimer: ReturnType<typeof setInterval> | undefined
+  let flushQueue = Promise.resolve()
 
   async function postPayload(payload: DesktopClientIngestRequest) {
     const acknowledgement = await postDesktopClientIngestWithRetry({
@@ -152,6 +158,28 @@ export function startDesktopCompanionRuntime({
     }
   }
 
+  async function postSessionUpdateIfChanged(
+    status: LiveDraftConnectionStatus,
+    message: string | undefined,
+    eventIdPrefix: string,
+  ) {
+    const nextSignature = buildSessionSignature(status, message)
+
+    if (nextSignature === lastPostedSessionSignature) {
+      return
+    }
+
+    lastPostedSessionSignature = nextSignature
+
+    await postPayload({
+      metadata: createMetadata(eventIdPrefix),
+      session: {
+        status,
+        message,
+      },
+    })
+  }
+
   async function postHeartbeat() {
     if (stopped) {
       return
@@ -167,43 +195,67 @@ export function startDesktopCompanionRuntime({
     })
   }
 
-  async function flush() {
+  async function performFlush() {
     if (stopped) {
       return
     }
 
-    const draftState = await source.readDraftState()
+    try {
+      const snapshot = await source.readSnapshot()
 
-    if (!draftState) {
-      return
+      if (!snapshot) {
+        return
+      }
+
+      const sessionStatus = toSessionStatus(snapshot)
+      const sessionMessage = snapshot.message ?? `Desktop companion polled ${source.describe()}.`
+      const draftState = snapshot.draftState
+
+      if (!draftState) {
+        await postSessionUpdateIfChanged(sessionStatus, sessionMessage, 'source-status')
+        return
+      }
+
+      const nextDraftSignature = JSON.stringify(draftState)
+
+      if (nextDraftSignature === lastPostedDraftSignature) {
+        await postSessionUpdateIfChanged(sessionStatus, sessionMessage, 'source-status')
+        return
+      }
+
+      lastPostedDraftSignature = nextDraftSignature
+      lastPostedSessionSignature = buildSessionSignature('connected', sessionMessage)
+
+      await postPayload({
+        metadata: createMetadata('draft-state'),
+        session: {
+          status: 'connected',
+          message: sessionMessage,
+        },
+        draftState,
+      })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      await postSessionUpdateIfChanged('error', message, 'source-error')
+      throw error
     }
+  }
 
-    const nextDraftSignature = JSON.stringify(draftState)
+  function flush() {
+    flushQueue = flushQueue.then(
+      () => performFlush(),
+      () => performFlush(),
+    )
 
-    if (nextDraftSignature === lastPostedDraftSignature) {
-      return
-    }
-
-    lastPostedDraftSignature = nextDraftSignature
-
-    await postPayload({
-      metadata: createMetadata('draft-state'),
-      session: {
-        status: 'connected',
-        message: `Desktop companion forwarded a champion-select update from ${source.describe()}.`,
-      },
-      draftState,
-    })
+    return flushQueue
   }
 
   async function start() {
-    await postPayload({
-      metadata: createMetadata('session-connect'),
-      session: {
-        status: 'connecting',
-        message: `Desktop companion connected. Polling ${source.describe()} for champion-select updates.`,
-      },
-    })
+    await postSessionUpdateIfChanged(
+      'connecting',
+      `Desktop companion connected. Polling ${source.describe()} for champion-select updates.`,
+      'session-connect',
+    )
 
     await postHeartbeat()
     await flush()
@@ -238,15 +290,11 @@ export function startDesktopCompanionRuntime({
         clearInterval(heartbeatTimer)
       }
 
-      await postPayload({
-        metadata: createMetadata('session-stop'),
-        session: {
-          status: 'connecting',
-          message: 'Desktop companion runtime stopped.',
+      await postSessionUpdateIfChanged('connecting', 'Desktop companion runtime stopped.', 'session-stop').catch(
+        (error) => {
+          logger?.(error instanceof Error ? error.message : String(error))
         },
-      }).catch((error) => {
-        logger?.(error instanceof Error ? error.message : String(error))
-      })
+      )
     },
   }
 }

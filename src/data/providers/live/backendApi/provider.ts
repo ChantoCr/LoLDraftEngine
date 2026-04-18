@@ -8,6 +8,34 @@ export interface CreateBackendApiLiveDraftProviderInput {
   client?: BackendLiveApiClient
 }
 
+function getUnavailableBackendMessage(source: BackendLiveDraftSource) {
+  const fallbackMessageBySource: Record<BackendLiveDraftSource, string> = {
+    MOCK: 'Unable to start the mock live provider.',
+    RIOT_API:
+      'Unable to reach the local live backend. Start `npm run server:dev` and put `RIOT_API_KEY=...` in `.env.local` or `.env`.',
+    DESKTOP_CLIENT:
+      'Unable to reach the local desktop-companion backend. Start `npm run server:dev` before opening a desktop session.',
+  }
+
+  return fallbackMessageBySource[source]
+}
+
+function normalizeBackendProviderError(source: BackendLiveDraftSource, error: unknown) {
+  const rawMessage = error instanceof Error ? error.message : String(error)
+  const normalizedMessage = rawMessage.trim()
+
+  if (
+    normalizedMessage.includes('ECONNREFUSED') ||
+    normalizedMessage.includes('ProxyError') ||
+    normalizedMessage.includes('Failed to fetch') ||
+    normalizedMessage.includes('NetworkError')
+  ) {
+    return getUnavailableBackendMessage(source)
+  }
+
+  return normalizedMessage || getUnavailableBackendMessage(source)
+}
+
 export function createBackendApiLiveDraftProvider({
   source,
   client = createBackendLiveApiClient(),
@@ -24,21 +52,16 @@ export function createBackendApiLiveDraftProvider({
           syncMode: response.syncMode,
           lastSyncAt: response.lastSyncAt,
           message: response.message,
+          initialDraftState: response.initialDraftState,
+          snapshotDebug: response.snapshotDebug,
+          riotLookupDebug: response.riotLookupDebug,
         }
       } catch (error) {
-        const fallbackMessageBySource: Record<BackendLiveDraftSource, string> = {
-          MOCK: 'Unable to start the mock live provider.',
-          RIOT_API:
-            'Unable to reach the local live backend. Start `npm run server:dev` and put `RIOT_API_KEY=...` in `.env.local` or `.env`.',
-          DESKTOP_CLIENT:
-            'Unable to reach the local desktop-companion backend. Start `npm run server:dev` before opening a desktop session.',
-        }
-
         return {
           player: identity,
           status: 'error',
           syncMode: source,
-          message: error instanceof Error ? error.message : fallbackMessageBySource[source],
+          message: normalizeBackendProviderError(source, error),
         }
       }
     },

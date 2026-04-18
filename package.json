@@ -12,6 +12,7 @@
     "server:start": "tsx server/index.ts",
     "desktop:mock": "tsx server/live/desktopClient/runMockCompanion.ts",
     "desktop:file": "tsx server/live/desktopClient/runFileCompanion.ts",
+    "desktop:lcu": "tsx server/live/desktopClient/runLcuCompanion.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",

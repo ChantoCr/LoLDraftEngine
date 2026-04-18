@@ -1,3 +1,5 @@
+import type { DraftState } from '@/domain/draft/types'
+
 export type RiotRegion =
   | 'BR'
   | 'EUN'
@@ -26,6 +28,29 @@ export interface SummonerIdentity {
 
 export type LiveDraftSyncMode = 'MANUAL' | 'MOCK' | 'RIOT_API' | 'DESKTOP_CLIENT'
 export type LiveDraftConnectionStatus = 'idle' | 'manual' | 'connecting' | 'connected' | 'error'
+export type LiveSnapshotSource = Exclude<LiveDraftSyncMode, 'MANUAL'>
+export type RiotLookupStepStatus = 'success' | 'failed' | 'skipped' | 'not-found' | 'not-needed'
+
+export interface LiveSnapshotDebugInfo {
+  source: LiveSnapshotSource
+  snapshotMapped?: boolean
+  lastSnapshotAt?: string
+  lastMappingFailureReason?: string
+}
+
+export interface RiotLookupStepDebugInfo {
+  status: RiotLookupStepStatus
+  details?: string
+}
+
+export interface RiotLookupDebugInfo {
+  source: 'RIOT_API'
+  accountLookup: RiotLookupStepDebugInfo
+  summonerLookupByPuuid: RiotLookupStepDebugInfo
+  summonerLookupByNameFallback: RiotLookupStepDebugInfo
+  encryptedSummonerId: RiotLookupStepDebugInfo
+  activeGameLookup: RiotLookupStepDebugInfo
+}
 
 export interface LiveDraftSession {
   sessionId?: string
@@ -34,4 +59,7 @@ export interface LiveDraftSession {
   syncMode: LiveDraftSyncMode
   lastSyncAt?: string
   message?: string
+  initialDraftState?: DraftState
+  snapshotDebug?: LiveSnapshotDebugInfo
+  riotLookupDebug?: RiotLookupDebugInfo
 }

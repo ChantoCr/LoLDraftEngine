@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createBackendLiveApiClient } from '@/data/providers/live/backendApi/client'
 import type { DraftState } from '@/domain/draft/types'
 import type { LiveDraftProvider } from '@/domain/live/provider'
-import type { LiveDraftSession, LiveDraftSyncMode, SummonerIdentity } from '@/domain/live/types'
+import type { LiveDraftSession, LiveDraftSyncMode, LiveSnapshotSource, SummonerIdentity } from '@/domain/live/types'
 
 interface UseLiveDraftSessionInput {
   providers: Partial<Record<LiveDraftSyncMode, LiveDraftProvider>>
@@ -16,16 +17,45 @@ function createInitialIdentity(): SummonerIdentity {
   }
 }
 
+function createDesktopCompanionIdentity(region: SummonerIdentity['region']): SummonerIdentity {
+  return {
+    gameName: 'Desktop Companion',
+    tagLine: 'LOCAL',
+    region,
+  }
+}
+
+function getInitialSessionMessage(syncMode: LiveDraftSyncMode) {
+  switch (syncMode) {
+    case 'MANUAL':
+      return 'Manual mode keeps the board fully interactive. No backend connection is required.'
+    case 'MOCK':
+      return 'Mock live mode streams fixture draft states for validation and UI testing.'
+    case 'RIOT_API':
+      return 'Riot API mode requires the backend companion plus a valid `RIOT_API_KEY`. It can recognize players and active games, but not true champ-select picks.'
+    case 'DESKTOP_CLIENT':
+      return 'Desktop client mode requires the local backend plus a desktop companion source. It does not need Riot API recognition for live pick/ban sync.'
+  }
+}
+
 function createInitialSession(syncMode: LiveDraftSyncMode): LiveDraftSession {
   return {
     status: 'idle',
     syncMode,
-    message:
-      'Choose a sync mode. Manual mode keeps the board fully interactive; mock live mode streams fixture draft states; Riot and desktop modes are scaffolded for future integration.',
+    message: getInitialSessionMessage(syncMode),
   }
 }
 
+function toSnapshotSource(syncMode: LiveDraftSyncMode): LiveSnapshotSource | undefined {
+  if (syncMode === 'MANUAL') {
+    return undefined
+  }
+
+  return syncMode
+}
+
 export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSessionInput) {
+  const backendLiveApiClientRef = useRef(createBackendLiveApiClient())
   const [identity, setIdentity] = useState<SummonerIdentity>(createInitialIdentity)
   const [syncMode, setSyncMode] = useState<LiveDraftSyncMode>('MANUAL')
   const [session, setSession] = useState<LiveDraftSession>(() => createInitialSession('MANUAL'))
@@ -39,12 +69,11 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
   const stopSession = useCallback(() => {
     unsubscribeRef.current?.()
     unsubscribeRef.current = undefined
-    setSession((currentSession) => ({
-      ...currentSession,
+    setSession({
       status: 'idle',
       syncMode,
-      message: 'Live sync stopped. Manual draft interaction remains available.',
-    }))
+      message: syncMode === 'MANUAL' ? getInitialSessionMessage(syncMode) : 'Live sync stopped. Manual draft interaction remains available.',
+    })
   }, [syncMode])
 
   useEffect(() => {
@@ -57,7 +86,12 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
     unsubscribeRef.current?.()
     unsubscribeRef.current = undefined
 
-    if (!identity.gameName || !identity.tagLine) {
+    const effectiveIdentity =
+      syncMode === 'DESKTOP_CLIENT'
+        ? createDesktopCompanionIdentity(identity.region)
+        : identity
+
+    if (syncMode !== 'DESKTOP_CLIENT' && (!identity.gameName || !identity.tagLine)) {
       setSession({
         status: 'error',
         syncMode,
@@ -68,7 +102,7 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
 
     if (syncMode === 'MANUAL') {
       setSession({
-        player: identity,
+        player: effectiveIdentity,
         status: 'manual',
         syncMode,
         lastSyncAt: new Date().toISOString(),
@@ -82,7 +116,7 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
 
     if (!provider) {
       setSession({
-        player: identity,
+        player: effectiveIdentity,
         status: 'error',
         syncMode,
         message: 'No live-draft provider is configured for this sync mode yet.',
@@ -91,14 +125,19 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
     }
 
     setSession({
-      player: identity,
+      player: effectiveIdentity,
       status: 'connecting',
       syncMode,
       message: 'Connecting to live draft provider...',
+      snapshotDebug: toSnapshotSource(syncMode) ? { source: toSnapshotSource(syncMode)! } : undefined,
     })
 
-    const recognizedSession = await provider.recognizePlayer(identity)
+    const recognizedSession = await provider.recognizePlayer(effectiveIdentity)
     setSession(recognizedSession)
+
+    if (recognizedSession.initialDraftState) {
+      draftStateCallbackRef.current(recognizedSession.initialDraftState)
+    }
 
     if (recognizedSession.status !== 'connected') {
       return
@@ -108,11 +147,22 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
       recognizedSession,
       (draftState) => {
         draftStateCallbackRef.current(draftState)
-        setSession((currentSession) => ({
-          ...currentSession,
-          status: 'connected',
-          lastSyncAt: new Date().toISOString(),
-        }))
+        setSession((currentSession) => {
+          const snapshotSource = toSnapshotSource(currentSession.syncMode)
+
+          return {
+            ...currentSession,
+            status: 'connected',
+            lastSyncAt: new Date().toISOString(),
+            snapshotDebug: snapshotSource
+              ? {
+                  source: snapshotSource,
+                  snapshotMapped: true,
+                  lastSnapshotAt: new Date().toISOString(),
+                }
+              : currentSession.snapshotDebug,
+          }
+        })
       },
       (partialSession) => {
         setSession((currentSession) => ({
@@ -120,11 +170,39 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
           ...partialSession,
           status: partialSession.status ?? currentSession.status,
           message: partialSession.message ?? currentSession.message,
+          snapshotDebug: partialSession.snapshotDebug ?? currentSession.snapshotDebug,
+          riotLookupDebug: partialSession.riotLookupDebug ?? currentSession.riotLookupDebug,
           lastSyncAt: new Date().toISOString(),
         }))
       },
     )
   }, [identity, providers, syncMode])
+
+  const triggerDesktopMockSequence = useCallback(async () => {
+    if (syncMode !== 'DESKTOP_CLIENT' || !session.sessionId) {
+      setSession((currentSession) => ({
+        ...currentSession,
+        message: 'Start a desktop-client session before triggering the mock bridge sequence.',
+      }))
+      return
+    }
+
+    try {
+      const result = await backendLiveApiClientRef.current.triggerDesktopMockSequence(session.sessionId)
+      setSession((currentSession) => ({
+        ...currentSession,
+        status: 'connected',
+        lastSyncAt: new Date().toISOString(),
+        message: `Desktop mock bridge triggered successfully. Emitted ${result.emittedStates} draft snapshots.`,
+      }))
+    } catch (error) {
+      setSession((currentSession) => ({
+        ...currentSession,
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to trigger the desktop mock bridge.',
+      }))
+    }
+  }, [session.sessionId, syncMode])
 
   const updateSyncMode = useCallback((nextSyncMode: LiveDraftSyncMode) => {
     unsubscribeRef.current?.()
@@ -141,5 +219,6 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
     setSyncMode: updateSyncMode,
     startSession,
     stopSession,
+    triggerDesktopMockSequence,
   }
 }

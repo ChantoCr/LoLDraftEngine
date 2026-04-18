@@ -15,6 +15,7 @@ describe('backend live draft providers', () => {
         region: 'LAN',
       }),
       subscribeToDraft: vi.fn().mockResolvedValue(() => {}),
+      triggerDesktopMockSequence: vi.fn(),
     }
     const provider = createRiotApiLiveDraftProvider({ client })
     const session = await provider.recognizePlayer({ gameName: 'Tester', tagLine: 'LAN', region: 'LAN' })
@@ -30,6 +31,7 @@ describe('backend live draft providers', () => {
     const client = {
       recognizePlayer: vi.fn().mockRejectedValue(new Error('Local companion API is offline.')),
       subscribeToDraft: vi.fn(),
+      triggerDesktopMockSequence: vi.fn(),
     }
     const provider = createDesktopClientLiveDraftProvider({ client })
     const session = await provider.recognizePlayer({ gameName: 'Tester', tagLine: 'LAN', region: 'LAN' })

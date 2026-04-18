@@ -1,55 +1,229 @@
 import { getServerConfig } from '@server/config/env'
-import { createRiotApiClient } from '@server/live/riot/client'
+import { loadDesktopChampionCatalog } from '@server/live/desktopClient/championCatalog'
+import { mapRiotActiveGameToDraftStateWithDebug } from '@server/live/riot/activeGameMapper'
+import { createRiotApiClient, type RiotApiClient, type RiotRecognizedPlayer } from '@server/live/riot/client'
 import { getRiotRegionRouting } from '@server/live/riot/routing'
-import type { BackendLiveDraftAdapter } from '@server/live/types'
+import type { BackendLiveDraftAdapter, RecognizedLiveSession } from '@server/live/types'
+import type { SummonerIdentity } from '@/domain/live/types'
 
-export function createRiotBackendLiveDraftAdapter(): BackendLiveDraftAdapter {
+interface CreateRiotBackendLiveDraftAdapterInput {
+  riotApiKey?: string
+  clientFactory?: (apiKey: string) => RiotApiClient
+  loadChampionCatalog?: typeof loadDesktopChampionCatalog
+  pollIntervalMs?: number
+  setIntervalFn?: typeof setInterval
+  clearIntervalFn?: typeof clearInterval
+}
+
+function containsForbiddenLookupDetail(details?: string) {
+  return Boolean(details && details.includes('403 Forbidden'))
+}
+
+function buildRiotActiveGameWarningSummary(recognizedPlayer: RiotRecognizedPlayer) {
+  const fallbackLookup = recognizedPlayer.lookupDebug.summonerLookupByNameFallback
+  const encryptedSummonerId = recognizedPlayer.lookupDebug.encryptedSummonerId
+
+  if (fallbackLookup.status === 'failed' && containsForbiddenLookupDetail(fallbackLookup.details)) {
+    return 'Riot recognized the player profile, but Riot blocked the fallback summoner-name spectator recovery step (403 Forbidden). Active-game detection was skipped.'
+  }
+
+  if (encryptedSummonerId.status === 'failed') {
+    return 'Riot recognized the player profile, but spectator lookup could not recover an encrypted summoner id. Active-game detection was skipped.'
+  }
+
+  return recognizedPlayer.activeGameWarning
+}
+
+function createRiotSnapshotDebugState({
+  recognizedPlayer,
+  initialDraftState,
+  snapshotFailureReason,
+}: {
+  recognizedPlayer: RiotRecognizedPlayer
+  initialDraftState?: RecognizedLiveSession['initialDraftState']
+  snapshotFailureReason?: string
+}): RecognizedLiveSession['snapshotDebug'] {
+  if (!recognizedPlayer.activeGame && !recognizedPlayer.activeGameWarning && !snapshotFailureReason) {
+    return {
+      source: 'RIOT_API',
+      snapshotMapped: false,
+      lastMappingFailureReason: 'No active game snapshot is currently available from Riot spectator APIs.',
+    }
+  }
+
+  return {
+    source: 'RIOT_API',
+    snapshotMapped: Boolean(initialDraftState),
+    lastSnapshotAt: recognizedPlayer.activeGame ? new Date().toISOString() : undefined,
+    lastMappingFailureReason: initialDraftState
+      ? undefined
+      : snapshotFailureReason ??
+        recognizedPlayer.activeGameWarning ??
+        'The Riot active-game snapshot was not mapped into the draft board.',
+  }
+}
+
+async function buildRiotRecognitionResult(
+  identity: SummonerIdentity,
+  {
+    riotApiKey,
+    clientFactory = (apiKey: string) => createRiotApiClient({ apiKey }),
+    loadChampionCatalog = loadDesktopChampionCatalog,
+  }: Pick<CreateRiotBackendLiveDraftAdapterInput, 'riotApiKey' | 'clientFactory' | 'loadChampionCatalog'>,
+): Promise<{ recognizedSession: RecognizedLiveSession; recognizedPlayer?: RiotRecognizedPlayer }> {
+  if (!riotApiKey) {
+    return {
+      recognizedSession: {
+        status: 'error',
+        message:
+          'RIOT_API_KEY is not configured on the backend companion. Add a Riot API key to enable real region-aware player recognition.',
+      },
+    }
+  }
+
+  try {
+    const client = clientFactory(riotApiKey)
+    const recognizedPlayer = await client.recognizePlayerByRiotId({
+      gameName: identity.gameName,
+      tagLine: identity.tagLine,
+      region: identity.region,
+    })
+    const routing = getRiotRegionRouting(identity.region)
+    const { resolvedPatchVersion, championCatalog } = await loadChampionCatalog('latest').catch(() => ({
+      resolvedPatchVersion: 'latest',
+      championCatalog: [],
+    }))
+    const activeGameMappingResult =
+      recognizedPlayer.activeGame && championCatalog.length > 0
+        ? mapRiotActiveGameToDraftStateWithDebug({
+            player: recognizedPlayer,
+            championCatalog,
+            patchVersion: resolvedPatchVersion,
+          })
+        : undefined
+    const initialDraftState = activeGameMappingResult?.draftState
+    const normalizedActiveGameWarning = buildRiotActiveGameWarningSummary(recognizedPlayer)
+    const snapshotFailureReason = recognizedPlayer.activeGame
+      ? championCatalog.length === 0
+        ? 'Champion catalog loading failed, so the Riot live-game roster could not be mapped into the draft board.'
+        : activeGameMappingResult?.failureReason ??
+          (initialDraftState ? undefined : 'The Riot active-game roster was detected but could not be mapped into the draft board.')
+      : normalizedActiveGameWarning
+    const activeGameMessage = recognizedPlayer.activeGame
+      ? initialDraftState
+        ? `Active game detected on ${routing.platformId} (${recognizedPlayer.activeGame.gameMode}). The current live roster was mapped into the draft board for composition review, but Riot public APIs still do not expose true champion-select streaming.`
+        : `Active game detected on ${routing.platformId} (${recognizedPlayer.activeGame.gameMode}), but the live roster could not be mapped into the draft board yet. Riot public APIs still do not expose true champion-select streaming.`
+      : normalizedActiveGameWarning
+        ? `Player recognized through ${routing.regionalCluster}/${routing.platformId}. ${normalizedActiveGameWarning}`
+        : `Player recognized through ${routing.regionalCluster}/${routing.platformId}, but no active game was detected.`
+
+    return {
+      recognizedPlayer,
+      recognizedSession: {
+        status: 'connected',
+        message: activeGameMessage,
+        initialDraftState,
+        snapshotDebug: createRiotSnapshotDebugState({
+          recognizedPlayer,
+          initialDraftState,
+          snapshotFailureReason,
+        }),
+        riotLookupDebug: recognizedPlayer.lookupDebug,
+      },
+    }
+  } catch (error) {
+    return {
+      recognizedSession: {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unable to recognize the Riot player.',
+      },
+    }
+  }
+}
+
+export function createRiotBackendLiveDraftAdapter({
+  riotApiKey = getServerConfig().riotApiKey,
+  clientFactory = (apiKey: string) => createRiotApiClient({ apiKey }),
+  loadChampionCatalog = loadDesktopChampionCatalog,
+  pollIntervalMs = 20_000,
+  setIntervalFn = setInterval,
+  clearIntervalFn = clearInterval,
+}: CreateRiotBackendLiveDraftAdapterInput = {}): BackendLiveDraftAdapter {
   return {
     source: 'RIOT_API',
     async recognizePlayer(identity) {
-      const config = getServerConfig()
-
-      if (!config.riotApiKey) {
-        return {
-          status: 'error',
-          message:
-            'RIOT_API_KEY is not configured on the backend companion. Add a Riot API key to enable real region-aware player recognition.',
-        }
-      }
-
-      try {
-        const client = createRiotApiClient({ apiKey: config.riotApiKey })
-        const recognizedPlayer = await client.recognizePlayerByRiotId({
-          gameName: identity.gameName,
-          tagLine: identity.tagLine,
-          region: identity.region,
-        })
-        const routing = getRiotRegionRouting(identity.region)
-        const activeGameMessage = recognizedPlayer.activeGame
-          ? `Active game detected on ${routing.platformId} (${recognizedPlayer.activeGame.gameMode}). Public Riot APIs do not expose live champion-select picks, so full draft sync still needs a desktop bridge or a private ingestion path.`
-          : `Player recognized through ${routing.regionalCluster}/${routing.platformId}, but no active game was detected.`
-
-        return {
-          status: 'connected',
-          message: activeGameMessage,
-        }
-      } catch (error) {
-        return {
-          status: 'error',
-          message: error instanceof Error ? error.message : 'Unable to recognize the Riot player.',
-        }
-      }
-    },
-    async subscribe(_session, emitEvent) {
-      emitEvent({
-        type: 'session-update',
-        session: {
-          status: 'error',
-          message:
-            'Riot public APIs can validate player identity and active-game presence, but they do not provide true champion-select draft streaming. Use the desktop-client bridge for live pick/ban sync.',
-        },
+      const { recognizedSession } = await buildRiotRecognitionResult(identity, {
+        riotApiKey,
+        clientFactory,
+        loadChampionCatalog,
       })
-      return () => {}
+
+      return recognizedSession
+    },
+    async subscribe(session, emitEvent) {
+      let stopped = false
+      let lastDraftSignature: string | undefined
+
+      async function poll() {
+        const { recognizedSession } = await buildRiotRecognitionResult(session.player, {
+          riotApiKey,
+          clientFactory,
+          loadChampionCatalog,
+        })
+
+        if (stopped) {
+          return
+        }
+
+        emitEvent({
+          type: 'session-update',
+          session: {
+            status: recognizedSession.status,
+            message: recognizedSession.message,
+            snapshotDebug: recognizedSession.snapshotDebug,
+            riotLookupDebug: recognizedSession.riotLookupDebug,
+          },
+        })
+
+        if (recognizedSession.initialDraftState) {
+          const nextDraftSignature = JSON.stringify(recognizedSession.initialDraftState)
+
+          if (nextDraftSignature !== lastDraftSignature) {
+            lastDraftSignature = nextDraftSignature
+            emitEvent({
+              type: 'draft-state',
+              draftState: recognizedSession.initialDraftState,
+            })
+          }
+        }
+      }
+
+      await poll().catch((error) => {
+        emitEvent({
+          type: 'session-update',
+          session: {
+            status: 'error',
+            message: error instanceof Error ? error.message : String(error),
+          },
+        })
+      })
+
+      const timer = setIntervalFn(() => {
+        void poll().catch((error) => {
+          emitEvent({
+            type: 'session-update',
+            session: {
+              status: 'error',
+              message: error instanceof Error ? error.message : String(error),
+            },
+          })
+        })
+      }, pollIntervalMs)
+
+      return () => {
+        stopped = true
+        clearIntervalFn(timer)
+      }
     },
   }
 }

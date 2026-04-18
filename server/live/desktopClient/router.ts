@@ -19,6 +19,34 @@ function isAuthorizedDesktopCompanionRequest(request: Request, companionToken?: 
   return request.get('x-desktop-companion-token') === companionToken
 }
 
+function getIgnoredReason(
+  session: ReturnType<InMemoryLiveSessionStore['get']>,
+  payload: DesktopClientIngestRequest,
+  companionInstanceId?: string,
+): DesktopClientIngestAck['ignoredReason'] {
+  if (!session) {
+    return undefined
+  }
+
+  const nextEventId = payload.metadata?.eventId
+  if (nextEventId && session.lastIngestEventId === nextEventId) {
+    return 'duplicate-event'
+  }
+
+  const nextSequenceNumber = payload.metadata?.sequenceNumber
+  if (
+    typeof nextSequenceNumber === 'number' &&
+    typeof session.lastIngestSequenceNumber === 'number' &&
+    companionInstanceId &&
+    session.companionInstanceId === companionInstanceId &&
+    nextSequenceNumber <= session.lastIngestSequenceNumber
+  ) {
+    return 'stale-sequence'
+  }
+
+  return undefined
+}
+
 export function createDesktopClientRouter({ sessionStore, bridge, companionToken }: CreateDesktopClientRouterInput) {
   const router = Router()
 
@@ -52,6 +80,27 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
     const acceptedEvents: DesktopClientIngestAck['acceptedEvents'] = []
     let listenerNotifications = 0
     const companionInstanceId = payload.metadata?.companionInstanceId ?? payload.heartbeat?.companionInstanceId
+    const ignoredReason = getIgnoredReason(session, payload, companionInstanceId)
+
+    if (ignoredReason) {
+      response.json({
+        ok: true,
+        sessionId,
+        ackId: randomUUID(),
+        receivedAt: new Date().toISOString(),
+        acceptedEvents,
+        listenerNotifications,
+        ignoredReason,
+      } satisfies DesktopClientIngestAck)
+      return
+    }
+
+    const sessionUpdateBase = {
+      companionInstanceId,
+      lastIngestEventId: payload.metadata?.eventId,
+      lastIngestSequenceNumber: payload.metadata?.sequenceNumber,
+      updatedAt: new Date().toISOString(),
+    }
 
     if (payload.heartbeat) {
       const heartbeatMessage =
@@ -62,9 +111,7 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
         status: session.status === 'error' ? 'connecting' : session.status,
         message: heartbeatMessage,
         lastHeartbeatAt: payload.heartbeat.observedAt ?? new Date().toISOString(),
-        companionInstanceId,
-        lastIngestEventId: payload.metadata?.eventId,
-        updatedAt: new Date().toISOString(),
+        ...sessionUpdateBase,
       })
 
       listenerNotifications += bridge.emit(sessionId, {
@@ -81,9 +128,7 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
       sessionStore.update(sessionId, {
         status: payload.session.status ?? session.status,
         message: payload.session.message ?? session.message,
-        companionInstanceId,
-        lastIngestEventId: payload.metadata?.eventId,
-        updatedAt: new Date().toISOString(),
+        ...sessionUpdateBase,
       })
 
       listenerNotifications += bridge.emit(sessionId, {
@@ -96,9 +141,7 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
     if (payload.draftState) {
       sessionStore.update(sessionId, {
         status: 'connected',
-        companionInstanceId,
-        lastIngestEventId: payload.metadata?.eventId,
-        updatedAt: new Date().toISOString(),
+        ...sessionUpdateBase,
       })
 
       listenerNotifications += bridge.emit(sessionId, {

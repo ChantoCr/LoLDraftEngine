@@ -12,6 +12,7 @@ describe('formatDevProxyError', () => {
 
     expect(message).toContain('ProxyError /api/stats/patch/15.8/catalog')
     expect(message).toContain('AggregateError ECONNREFUSED')
+    expect(message).toContain('The local backend companion is not reachable. Start `npm run server:dev` and retry.')
     expect(message).toContain('All connection attempts failed')
   })
 })

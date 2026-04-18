@@ -35,4 +35,5 @@ export interface DesktopClientIngestAck {
   receivedAt: string
   acceptedEvents: Array<'session-update' | 'draft-state' | 'heartbeat'>
   listenerNotifications: number
+  ignoredReason?: 'duplicate-event' | 'stale-sequence'
 }

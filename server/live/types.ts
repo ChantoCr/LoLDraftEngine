@@ -1,6 +1,6 @@
 import type { DraftState } from '@/domain/draft/types'
 import type { BackendLiveDraftEvent, BackendLiveDraftSource } from '@/data/providers/live/backendApi/types'
-import type { LiveDraftConnectionStatus, SummonerIdentity } from '@/domain/live/types'
+import type { LiveDraftConnectionStatus, LiveSnapshotDebugInfo, RiotLookupDebugInfo, SummonerIdentity } from '@/domain/live/types'
 
 export interface LiveSessionRecord {
   id: string
@@ -13,11 +13,17 @@ export interface LiveSessionRecord {
   lastHeartbeatAt?: string
   companionInstanceId?: string
   lastIngestEventId?: string
+  lastIngestSequenceNumber?: number
+  snapshotDebug?: LiveSnapshotDebugInfo
+  riotLookupDebug?: RiotLookupDebugInfo
 }
 
 export interface RecognizedLiveSession {
   status: Extract<LiveDraftConnectionStatus, 'connecting' | 'connected' | 'error'>
   message?: string
+  initialDraftState?: DraftState
+  snapshotDebug?: LiveSnapshotDebugInfo
+  riotLookupDebug?: RiotLookupDebugInfo
 }
 
 export interface BackendLiveDraftAdapter {

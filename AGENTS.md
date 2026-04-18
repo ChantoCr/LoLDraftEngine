@@ -87,6 +87,7 @@ The agent should help design and implement features including:
 - patch-aware meta panel
 - draft history and comparison
 - AI chat coach for draft reasoning
+- deterministic live game-plan generation for populated boards
 
 ## Workflow Expectations
 When asked to build or modify something:
@@ -97,6 +98,9 @@ When asked to build or modify something:
 5. Explain tradeoffs when choosing architecture or algorithms.
 6. Keep naming clean and domain-oriented.
 7. Avoid unnecessary complexity, but do not oversimplify core systems.
+8. Keep the live-sync distinction explicit:
+   - `DESKTOP_CLIENT` is the real path for true live draft sync.
+   - `RIOT_API` is useful for recognition and live-game roster analysis, not real champ-select streaming.
 
 ## Expected Domain Concepts
 The project will likely include concepts such as:

@@ -1,10 +1,17 @@
 import type { DraftState } from '@/domain/draft/types'
-import type { LiveDraftConnectionStatus, LiveDraftSession, RiotRegion, SummonerIdentity } from '@/domain/live/types'
+import type {
+  LiveDraftConnectionStatus,
+  LiveDraftSession,
+  LiveSnapshotDebugInfo,
+  RiotLookupDebugInfo,
+  RiotRegion,
+  SummonerIdentity,
+} from '@/domain/live/types'
 
 export type BackendLiveDraftSource = 'MOCK' | 'RIOT_API' | 'DESKTOP_CLIENT'
 
 export interface RecognizePlayerRequest {
-  identity: SummonerIdentity
+  identity?: Partial<SummonerIdentity>
   source: BackendLiveDraftSource
 }
 
@@ -16,6 +23,14 @@ export interface RecognizePlayerResponse {
   message?: string
   lastSyncAt?: string
   region: RiotRegion
+  initialDraftState?: DraftState
+  snapshotDebug?: LiveSnapshotDebugInfo
+  riotLookupDebug?: RiotLookupDebugInfo
+}
+
+export interface TriggerDesktopMockSequenceResponse {
+  ok: true
+  emittedStates: number
 }
 
 export interface SubscribeToDraftInput {

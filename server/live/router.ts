@@ -22,13 +22,32 @@ function isValidIdentity(identity: Partial<SummonerIdentity>): identity is Summo
   )
 }
 
+function normalizeIdentityForSource(
+  source: BackendLiveDraftSource | undefined,
+  identity: Partial<SummonerIdentity> | undefined,
+): SummonerIdentity | undefined {
+  if (identity && isValidIdentity(identity)) {
+    return identity
+  }
+
+  if (source === 'DESKTOP_CLIENT') {
+    return {
+      gameName: 'Desktop Companion',
+      tagLine: 'LOCAL',
+      region: identity?.region && RIOT_REGIONS.includes(identity.region) ? identity.region : 'LAN',
+    }
+  }
+
+  return undefined
+}
+
 export function createLiveRouter({ adapters, sessionStore }: CreateLiveRouterInput) {
   const router = Router()
 
   router.post('/session/recognize', async (request: Request, response: Response) => {
     const body = request.body as Partial<RecognizePlayerRequest>
     const source = body.source
-    const identity = body.identity
+    const identity = normalizeIdentityForSource(source, body.identity)
 
     if (!source || !adapters[source]) {
       response.status(400).json({
@@ -54,6 +73,8 @@ export function createLiveRouter({ adapters, sessionStore }: CreateLiveRouterInp
       message: recognizedSession.message,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      snapshotDebug: recognizedSession.snapshotDebug,
+      riotLookupDebug: recognizedSession.riotLookupDebug,
     })
 
     response.json({
@@ -64,6 +85,9 @@ export function createLiveRouter({ adapters, sessionStore }: CreateLiveRouterInp
       message: sessionRecord.message,
       lastSyncAt: sessionRecord.updatedAt,
       region: sessionRecord.player.region,
+      initialDraftState: recognizedSession.initialDraftState,
+      snapshotDebug: recognizedSession.snapshotDebug,
+      riotLookupDebug: recognizedSession.riotLookupDebug,
     })
   })
 
@@ -87,14 +111,23 @@ export function createLiveRouter({ adapters, sessionStore }: CreateLiveRouterInp
         sessionStore.update(session.id, {
           status: 'connected',
           updatedAt: new Date().toISOString(),
+          snapshotDebug: {
+            source: session.source,
+            snapshotMapped: true,
+            lastSnapshotAt: new Date().toISOString(),
+          },
         })
       }
 
       if (event.type === 'session-update') {
+        const existingSession = sessionStore.get(session.id)
+
         sessionStore.update(session.id, {
-          status: event.session.status ?? session.status,
-          message: event.session.message ?? session.message,
+          status: event.session.status ?? existingSession?.status ?? session.status,
+          message: event.session.message ?? existingSession?.message ?? session.message,
           updatedAt: new Date().toISOString(),
+          snapshotDebug: event.session.snapshotDebug ?? existingSession?.snapshotDebug,
+          riotLookupDebug: event.session.riotLookupDebug ?? existingSession?.riotLookupDebug,
         })
       }
 

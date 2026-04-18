@@ -60,6 +60,7 @@ npm run server:start
 - `npm run server:start` — start the backend companion with `tsx`
 - `npm run desktop:mock -- <sessionId>` — post a mock desktop-companion draft stream into an existing desktop-client session
 - `npm run desktop:file -- <sessionId> <draftState.json>` — run a local desktop companion that polls a bridge-compatible draft-state json file and ingests updates into the backend
+- `npm run desktop:lcu -- <sessionId> [patchVersion] [lockfilePath]` — run the LCU-backed local desktop companion against the active League client lockfile
 - `npm run preview` — preview the production build locally
 - `npm run lint` — run ESLint
 - `npm run test` — run Vitest in watch mode
@@ -194,10 +195,18 @@ The desktop companion bridge now supports:
 - heartbeat/session health updates
 - companion metadata
 - retry-aware local runtime posting
+- typed source snapshots
+- stale/duplicate ingest protection
+- mock runner
+- file-based bridge-compatible runner
+- LCU lockfile discovery and local polling scaffold
+- local self-signed HTTPS-compatible LCU requester
+- in-UI desktop mock trigger helper
 
-What is still missing:
-- a real local LoL client / LCU source adapter
-- a production champ-select mapper into internal `DraftState`
+Current desktop-client reality:
+- `DESKTOP_CLIENT` is the real path for live draft sync
+- `desktop:lcu` is the preferred real local-client path
+- `desktop:mock` and `desktop:file` are useful validation tools
 
 ## Riot live notes
 
@@ -205,10 +214,16 @@ What is still missing:
 - Riot account recognition
 - summoner lookup
 - active-game detection
+- active-game roster snapshot mapping into the draft board when spectator data is available
 
 It cannot provide real champ-select pick/ban streaming through public Riot APIs alone.
 
-For true live draft sync, the long-term path is:
+Practical use of `RIOT_API` now:
+- recognize the player
+- detect a live game when Riot spectator APIs expose it
+- map the current live-game roster into internal `DraftState` for composition/matchup/coach analysis
+
+For true live draft sync, the long-term path remains:
 - `DESKTOP_CLIENT`
 - local companion process
 - local champ-select source adapter
@@ -216,30 +231,41 @@ For true live draft sync, the long-term path is:
 ## Current progress
 
 - deterministic draft-state, composition, and recommendation engine are implemented
-- Vitest coverage exists for draft operations, composition analysis, recommendation regression, stats ingestion, and bundle merging
+- Vitest coverage exists for draft operations, composition analysis, recommendation regression, stats ingestion, bundle merging, desktop companion runtime behavior, Riot mapping, and coach/game-plan logic
 - Data Dragon loading now supports the full champion roster and latest patch resolution
-- the draft board is interactive and now supports visible clickable champion search results
+- the draft board is interactive and supports visible clickable champion search results
 - manual draft mode can place any champion in any lane slot for exploration
 - a patch selector UI now exists, including `latest` and explicit patch pinning
 - stats signals are blended into recommendation scoring without replacing deterministic rules
-- a live-session system now supports manual mode, mock live feed mode, and backend-driven Riot / desktop-client provider modes
+- a live-session system supports MANUAL, MOCK, RIOT_API, and DESKTOP_CLIENT provider modes
 - region support is designed to be multi-region, including LAN, LAS, NA, EUW, EUN, KR, BR, OCE, JP, MENA, SEA regions, and PBE
 - a champion trait scaffold dataset can now be generated for broader champion coverage
 - desktop-client bridge ingestion routes now exist, including auth/heartbeat-aware ingest handling
-- desktop companion mock and file-based helper runtimes now exist
+- desktop companion mock, file-based, and LCU helper runtimes now exist
+- Riot API mode now stays informational/connected instead of pretending champ-select streaming is available
+- Riot active-game roster snapshots can now be mapped into internal `DraftState` when spectator APIs expose the live game roster
+- the live session panel now includes copyable session ids, companion commands, a desktop mock trigger button, troubleshooting guidance, and clearer live-status indicators
+- a deterministic live game-plan layer now exists for:
+  - your champion’s job
+  - ally comp identity
+  - enemy comp identity
+  - key threat to watch
+  - easiest win condition
+  - first practical play rules
+- the AI coach panel now renders richer structured guidance from deterministic signals
 
 ## Validation status
 
 Current validated state:
 - `npm run test:run` ✅
 - `npm run build` ✅
-- 28 test files
-- 53 tests passing
+- 38 test files
+- 78 tests passing
 
 ## Next likely milestones
 
-1. implement the real local desktop companion source adapter for LoL client / LCU-style champ-select data
+1. harden RIOT_API live-game roster snapshots with better role inference and clearer spectator-availability messaging
 2. persist curated champion trait datasets with patch-aware overrides
 3. ingest real patch meta / matchup / synergy data through the external stats adapter
-4. wire OpenAI + Pi flows for the AI Coach layer
+4. expand the live game-plan / AI Coach layer with more matchup- and role-specific guidance
 5. expand draft history, what-if, and comparison workflows

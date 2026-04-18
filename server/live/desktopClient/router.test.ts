@@ -100,6 +100,47 @@ describe('createDesktopClientRouter', () => {
     })
   })
 
+  it('ignores duplicate or stale desktop-companion ingest events', () => {
+    const bridge = new DesktopClientBridge()
+    const sessionStore = createDesktopSessionStore()
+    sessionStore.update('desktop-session-1', {
+      companionInstanceId: 'companion-1',
+      lastIngestEventId: 'evt-2',
+      lastIngestSequenceNumber: 2,
+    })
+    const router = createDesktopClientRouter({ sessionStore, bridge })
+    const layer = router.stack[0]?.route.stack[0]?.handle
+    const listener = vi.fn()
+    bridge.subscribe('desktop-session-1', listener)
+    const request = {
+      get: vi.fn(),
+      params: { sessionId: 'desktop-session-1' },
+      body: {
+        metadata: {
+          eventId: 'evt-1',
+          companionInstanceId: 'companion-1',
+          sequenceNumber: 1,
+        },
+        draftState: mockLiveDraftTimeline[0],
+      },
+    }
+    const response = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    }
+
+    layer(request, response)
+
+    expect(listener).not.toHaveBeenCalled()
+    expect(response.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        acceptedEvents: [],
+        listenerNotifications: 0,
+        ignoredReason: 'stale-sequence',
+      }),
+    )
+  })
+
   it('rejects unauthorized ingest requests when a companion token is configured', () => {
     const bridge = new DesktopClientBridge()
     const sessionStore = createDesktopSessionStore()

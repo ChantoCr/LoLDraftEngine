@@ -6,6 +6,7 @@ import type {
   RecognizePlayerRequest,
   RecognizePlayerResponse,
   SubscribeToDraftInput,
+  TriggerDesktopMockSequenceResponse,
 } from '@/data/providers/live/backendApi/types'
 
 interface EventSourceLike {
@@ -22,6 +23,7 @@ interface CreateBackendLiveApiClientInput {
 export interface BackendLiveApiClient {
   recognizePlayer(request: RecognizePlayerRequest): Promise<RecognizePlayerResponse>
   subscribeToDraft(input: SubscribeToDraftInput): Promise<() => void>
+  triggerDesktopMockSequence(sessionId: string): Promise<TriggerDesktopMockSequenceResponse>
 }
 
 const DEFAULT_BASE_URL = '/api/live'
@@ -36,6 +38,10 @@ export function buildDraftEventsUrl(
   baseUrl = DEFAULT_BASE_URL,
 ) {
   return `${baseUrl}/session/${encodeURIComponent(sessionId)}/events?source=${encodeURIComponent(source)}`
+}
+
+export function buildDesktopMockSequenceUrl(sessionId: string, baseUrl = DEFAULT_BASE_URL) {
+  return `${baseUrl}/desktop-client/mock/session/${encodeURIComponent(sessionId)}/mock-sequence`
 }
 
 function parseJsonEvent<TPayload>(event: MessageEvent<string>) {
@@ -102,6 +108,18 @@ export function createBackendLiveApiClient({
       }
 
       return (await response.json()) as RecognizePlayerResponse
+    },
+    async triggerDesktopMockSequence(sessionId: string) {
+      const response = await fetcher(buildDesktopMockSequenceUrl(sessionId, baseUrl), {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        const fallbackMessage = `Desktop mock trigger failed: ${response.status} ${response.statusText}`
+        throw new Error(await readBackendErrorMessage(response, fallbackMessage))
+      }
+
+      return (await response.json()) as TriggerDesktopMockSequenceResponse
     },
     async subscribeToDraft({ sessionId, source, onDraftState, onSessionUpdate, onError }) {
       const eventSource = eventSourceFactory(buildDraftEventsUrl(sessionId, source, baseUrl))

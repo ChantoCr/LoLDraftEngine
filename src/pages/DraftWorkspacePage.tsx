@@ -6,7 +6,9 @@ import { mockStatsBundle } from '@/data/mock/stats'
 import { buildChampionCatalogFromStatsBundle, createChampionCatalogEntry } from '@/domain/champion/catalog'
 import { buildChampionMapFromScaffoldDataset } from '@/domain/champion-traits/scaffold'
 import type { Role } from '@/domain/champion/types'
+import { buildCoachSummary } from '@/domain/coach/summary'
 import { analyzeDraftComposition } from '@/domain/composition/analyzer'
+import { buildLiveGamePlan } from '@/domain/game-plan/build'
 import {
   addBan,
   assignChampionToSlot,
@@ -132,6 +134,7 @@ export function DraftWorkspacePage() {
     setSyncMode,
     startSession,
     stopSession,
+    triggerDesktopMockSequence,
   } = useLiveDraftSession({
     providers: liveDraftProviders,
     onDraftState: handleRemoteDraftState,
@@ -141,6 +144,11 @@ export function DraftWorkspacePage() {
     const compositionProfile = analyzeDraftComposition({
       draftState,
       championsById: activeChampionMap,
+    })
+    const enemyCompositionProfile = analyzeDraftComposition({
+      draftState,
+      championsById: activeChampionMap,
+      side: 'ENEMY',
     })
     const bestOverallRecommendations = recommendChampionsForDraft({
       draftState,
@@ -160,7 +168,6 @@ export function DraftWorkspacePage() {
 
     const bestOverall = bestOverallRecommendations[0]
     const bestPool = personalPoolRecommendations[0]
-    const firstGap = compositionProfile.structuralGaps[0]?.toLowerCase() ?? 'draft cohesion'
     const bestOverallLabel = bestOverall ? bestOverall.championName : 'no available champion'
     const bestPoolLabel = bestPool ? bestPool.championName : 'no available pool candidate'
 
@@ -168,7 +175,19 @@ export function DraftWorkspacePage() {
       compositionProfile,
       bestOverallRecommendations,
       personalPoolRecommendations,
-      coachSummary: `The current draft is most sensitive to ${firstGap}. ${bestOverallLabel} is the strongest theoretical answer, while ${bestPoolLabel} is the best current pool-aware option. Structured patch signals are blended into synergy, matchup, and meta scoring, while the deterministic engine remains the source of truth.`,
+      gamePlan: buildLiveGamePlan({
+        draftState,
+        championsById: activeChampionMap,
+        allyProfile: compositionProfile,
+        enemyProfile: enemyCompositionProfile,
+      }),
+      coachSummary: buildCoachSummary({
+        draftState,
+        championsById: activeChampionMap,
+        compositionProfile,
+        bestOverallLabel,
+        bestPoolLabel,
+      }),
     }
   }, [activeChampionMap, activeStatsBundle, draftState])
 
@@ -207,6 +226,7 @@ export function DraftWorkspacePage() {
           onSyncModeChange={setSyncMode}
           onStartSession={startSession}
           onStopSession={stopSession}
+          onTriggerDesktopMockSequence={triggerDesktopMockSequence}
         />
 
         <DraftBoard
@@ -259,7 +279,7 @@ export function DraftWorkspacePage() {
         />
         <CompositionPanel compositionProfile={derivedState.compositionProfile} />
         <ChampionPoolPanel championPool={mockChampionPoolProfile} championsById={activeChampionMap} />
-        <AICoachPanel summary={derivedState.coachSummary} />
+        <AICoachPanel summary={derivedState.coachSummary} gamePlan={derivedState.gamePlan} />
       </div>
     </div>
   )

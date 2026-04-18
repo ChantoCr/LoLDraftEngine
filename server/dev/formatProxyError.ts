@@ -31,6 +31,11 @@ function buildErrorSummary(error: unknown) {
 
 export function formatDevProxyError(path: string, error: unknown) {
   const lines = [`ProxyError ${path}`, buildErrorSummary(error)]
+  const errorCodes = collectErrorCodes(error)
+
+  if (errorCodes.includes('ECONNREFUSED')) {
+    lines.push('The local backend companion is not reachable. Start `npm run server:dev` and retry.')
+  }
 
   if (error instanceof Error && error.stack?.trim()) {
     lines.push(error.stack.trim())

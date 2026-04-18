@@ -606,6 +606,7 @@ The backend actually loads:
 ### Desktop companion helpers
 - `npm run desktop:mock -- <sessionId>`
 - `npm run desktop:file -- <sessionId> <draftState.json>`
+- `npm run desktop:lcu -- <sessionId> [patchVersion] [lockfilePath]`
 
 ### Full build
 - `npm run build`
@@ -624,38 +625,37 @@ As of the end of this chat, the project passes:
 - tests
 
 Current tested state:
-- **28 test files**
-- **53 tests passing**
+- **38 test files**
+- **78 tests passing**
 
 ---
 
 ## Problems Still Not Fully Solved
 
-### 1. Real desktop companion process is not finished
-The project now has a stronger runtime scaffold, but it still needs a real local LoL source adapter.
-That future process should:
-- read actual client/LCU or bridge-compatible local state
-- map picks/bans into internal `DraftState`
-- call `/api/live/desktop-client/session/:id/ingest`
+### 1. Riot public APIs still do not provide true champ-select draft streaming
+`RIOT_API` can now be useful for player recognition and live-game roster snapshots when spectator data is available, but it still cannot provide true draft pick/ban streaming.
 
-### 2. All-champion trait fidelity is still approximate for many champions
-The scaffold system is useful, but high-quality recommendation behavior still benefits from:
+### 2. Riot live-game roster mapping still needs hardening
+Still needed:
+- better role inference from Riot active-game participants
+- clearer spectator-unavailable messaging
+- better debug visibility for why a live roster did or did not map into the board
+- broader real-world active-game payload validation
+
+### 3. Desktop-client live sync is strong but can still be hardened further
+The local-client path is now much stronger, but future improvements still include:
+- more real-world client fixture validation
+- richer debug visibility and event tracing
+- optional deeper process discovery/runtime ergonomics
+
+### 4. All-champion trait fidelity is still approximate for many champions
+The scaffold system is useful, but high-quality recommendation and coaching behavior still benefits from:
 - curated champion trait data
 - patch-aware overrides
 - manual review for difficult champions
 
-### 3. Riot integration is scaffolded, not production complete
-Still needed:
-- better rate limit handling
-- richer error and recovery handling
-- session persistence if desired
-- active-game/draft orchestration refinements
-
-### 4. True live pick/ban sync still depends on desktop bridge
-Riot public APIs alone are not sufficient for true champ-select event streaming.
-
 ### 5. AI Coach production integration is still pending
-OpenAI/Pi prompt orchestration is not yet fully wired into the app.
+The app now has stronger deterministic coaching and a live game-plan layer, but OpenAI/Pi orchestration is not yet fully wired.
 
 ### 6. Real external stats provider integration is still pending
 The external stats adapter is ready, but a real production provider still needs to be connected.
@@ -665,23 +665,22 @@ The external stats adapter is ready, but a real production provider still needs 
 ## Recommended Next Steps After This Chat
 
 ### Highest-value next steps
-1. Build the **real local desktop companion source adapter**.
-2. Add **persistent curated champion trait JSON datasets** with patch-aware overrides.
-3. Connect a **real external stats provider** behind `EXTERNAL_STATS_URL`.
-4. Wire the **AI Coach layer** to structured recommendation/composition outputs.
-5. Expand the UI with:
-   - what-if simulation
-   - comparison workflows
-   - saved draft history
-   - richer draft timeline views
+1. Harden **RIOT_API live-game roster snapshots**.
+2. Expand the deterministic **Live Game Plan / AI Coach** layer.
+3. Add **persistent curated champion trait JSON datasets** with patch-aware overrides.
+4. Connect a **real external stats provider** behind `EXTERNAL_STATS_URL`.
+5. Add better live/debug visibility for Riot and Desktop Client events.
 
 ### Best immediate next technical task
 Start with:
-- desktop companion source contract
-- LCU-compatible polling adapter scaffold
-- champ-select payload -> internal `DraftState` mapper
+- verifying why the current `RIOT_API` live session is or is not producing a mapped roster snapshot on the board
+- improving role inference and snapshot visibility for Riot live-game mapping
+- expanding the deterministic game-plan outputs for populated live boards
 
-That is the most aligned next step with the real product need: live draft sync through a local bridge.
+That path keeps the project aligned with the real product need:
+- `DESKTOP_CLIENT` for true live draft sync
+- `RIOT_API` for live-game roster analysis
+- deterministic coaching layered on top
 
 ---
 
@@ -689,13 +688,13 @@ That is the most aligned next step with the real product need: live draft sync t
 If a future assistant needs the shortest accurate context:
 
 - This project is a multi-region LoL Draft Intelligence Platform.
-- It already has deterministic draft-state, composition analysis, and recommendation logic.
+- It already has deterministic draft-state, composition analysis, recommendation logic, and patch-aware stats scaffolding.
 - It already supports best-overall and personal-pool recommendations.
-- It already blends stats signals into scoring without replacing deterministic logic.
-- It now loads the full champion roster directly from Data Dragon and supports explicit patch selection, including `latest`.
+- It loads the full champion roster directly from Data Dragon and supports explicit patch selection, including `latest`.
 - It already has a backend companion with live session recognition and SSE streaming.
-- It already supports MANUAL, MOCK, RIOT_API, and DESKTOP_CLIENT live modes.
-- Riot region routing is already scaffolded, including LAN via americas/la1.
-- Riot public APIs are still not enough for true live champ-select sync.
-- A desktop companion runtime scaffold now exists, including mock and file-based runners.
-- The next best step is to build the real local LoL desktop source adapter and mapper into internal `DraftState`.
+- It supports MANUAL, MOCK, RIOT_API, and DESKTOP_CLIENT live modes.
+- Riot region routing is scaffolded, including LAN via americas/la1.
+- `DESKTOP_CLIENT` is now the real local-client live sync path and already has mock, file, and LCU runners.
+- `RIOT_API` is now useful for player recognition and live-game roster snapshots when spectator APIs expose the current game, but Riot public APIs are still not enough for true live champ-select sync.
+- A deterministic live game-plan layer now exists and feeds a richer AI coach panel.
+- The next best step is to harden Riot live-game roster mapping and expand deterministic live coaching.

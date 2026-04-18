@@ -3,75 +3,100 @@
 ## Purpose
 This file captures the recommended execution roadmap after the current state of the project.
 
-## Current snapshot after today's work
-Completed or substantially improved today:
-- frontend Data Dragon loading now supports the full champion roster
-- special patch token `latest` now resolves to the newest available Data Dragon patch
-- patch selector UI now exists, so users can pin `latest`, `16.8.1`, or another Data Dragon version
-- draft board search now shows visible clickable search results
-- manual drafting can use any champion in any lane slot
-- mock live mode now works without backend recognition dependency
-- Riot/backend recognition errors are surfaced more clearly
-- desktop companion ingest contract now supports acking, auth token, heartbeat, companion metadata, and retry metadata
-- desktop companion local runtime scaffold now exists
-- file-based bridge-compatible local companion runner now exists
+## Current snapshot after this chat
+Completed or substantially improved during this session:
+- desktop companion source contracts are now typed and runtime-oriented
+- an LCU-compatible champ-select mapper -> internal `DraftState` now exists
+- lockfile-based LCU credential discovery now exists
+- local self-signed HTTPS-compatible LCU polling support now exists
+- `desktop:lcu` runtime wiring now exists
+- desktop stale/duplicate ingest protection now exists
+- desktop mock triggering can now be done directly from the UI
+- `DESKTOP_CLIENT` no longer requires Riot name/tag input
+- RIOT_API mode now stays connected/informational instead of pretending unsupported streaming is an error
+- Riot active-game roster snapshots can now be mapped into internal `DraftState` when spectator APIs expose the live game roster
+- a deterministic live game-plan layer now exists
+- the AI coach panel is now richer and grounded in deterministic game-plan outputs
 
 Current validated state:
 - `npm run test:run` passes
 - `npm run build` passes
-- 28 test files
-- 53 tests passing
+- 38 test files
+- 78 tests passing
 
 ---
 
-## Priority 1 — Real desktop companion bridge
+## Priority 1 — Riot live-game snapshot hardening
 ### Goal
-Turn the desktop-client backend scaffold into a real local ingestion process capable of reading champion-select state and posting it to the backend.
+Make `RIOT_API` reliably useful as a **live-game roster analysis mode** even though Riot public APIs still cannot provide real champ-select streaming.
 
-### Why this is first
-Riot public APIs are not enough for true live draft sync. The local bridge is the most realistic path to real-time pick/ban updates.
+### Why this matters now
+Desktop-client live sync is in a much stronger state. The next best value from Riot mode is to populate the board from an active live game when spectator data exists, then feed composition/matchup/game-plan analysis from that state.
 
 ### What is already done
 Implemented now:
-- desktop ingest endpoint scaffold
-- ingest ack payload
-- mock ingest sequence endpoint
-- optional companion auth header support via `DESKTOP_COMPANION_TOKEN`
-- heartbeat/session health updates
-- retry/delivery-attempt metadata support
-- mock desktop companion runtime
-- file-based bridge-compatible desktop companion runtime
+- Riot account recognition
+- summoner profile lookup
+- active-game checks
+- active-game failure handling improvements
+- Riot active-game roster -> `DraftState` mapper
+- initial and polled Riot live-game snapshot support
 
-### Deliverables still needed
-- a local companion process/app that reads real LoL client state
-- real champion-select source adapter
-- source-to-`DraftState` mapper
-- reconnect and polling strategy hardened for live client changes
-- validation under rapid draft updates
+### Remaining deliverables
+- better role inference for Riot live-game rosters
+- clearer spectator-unavailable messaging
+- debug visibility for whether a Riot live roster was mapped successfully
+- optional timeline/debug events for Riot polling
+- more real-world active-game fixture coverage
 
 ### Suggested next tasks
-1. define the **real desktop companion source contract** precisely
-2. add an **LCU-compatible polling adapter scaffold**
-3. map local champ-select payloads into internal `DraftState`
-4. add source-level reconnect and retry behavior
-5. add rapid-update integration tests
-6. add optional session dedupe / stale-event protection if needed
-
-### Recommended implementation order inside Priority 1
-1. desktop source DTOs and adapter interface
-2. LCU/bridge-compatible polling client scaffold
-3. champ-select mapper -> internal `DraftState`
-4. runtime integration with existing ingest endpoint
-5. rapid-update tests and session-health assertions
+1. improve Riot roster role inference beyond simple order-based placement
+2. add a Riot snapshot debug panel / event visibility
+3. add route/adapter tests for spectator-unavailable and roster-available transitions
+4. add more recorded active-game payload fixtures
+5. keep Riot mode explicitly framed as live-game analysis, not draft streaming
 
 ---
 
-## Priority 2 — Curated champion trait dataset
+## Priority 2 — Live Game Plan / Coach expansion
+### Goal
+Turn the existing deterministic game-plan layer into a more useful gameplay assistant once the board is populated from Desktop Client or Riot live-game snapshots.
+
+### Why this is next
+The board, analyzer, and recommendations already work. The most product-visible gain now is better role-specific and matchup-specific coaching.
+
+### What is already done
+Implemented now:
+- deterministic `game-plan` domain module scaffold
+- player champion job
+- ally/enemy comp identity summary
+- key threat to watch
+- easiest win condition
+- practical play rules
+- richer AI coach panel rendering structured outputs
+
+### Remaining deliverables
+- lane plan / early-game plan
+- objective setup advice
+- side-lane / teamfight posture guidance
+- clearer matchup danger summaries
+- role-aware threat prioritization improvements
+
+### Suggested next tasks
+1. add lane-phase and mid-game plan outputs
+2. add a richer threat model for enemy access / poke / scaling threats
+3. split advice by role where useful
+4. add deterministic “what not to do” guidance
+5. keep AI downstream of structured signals only
+
+---
+
+## Priority 3 — Curated champion trait dataset
 ### Goal
 Move from scaffold-only traits to persistent patch-aware curated trait data.
 
-### Why this is second
-The UI can now expose the full champion roster through Data Dragon, but recommendation quality still depends on good trait fidelity.
+### Why this is still important
+The UI can expose the full champion roster, but recommendation and coaching quality still depend heavily on trait fidelity.
 
 ### Deliverables
 - patch-scoped champion trait JSON files
@@ -88,12 +113,12 @@ The UI can now expose the full champion roster through Data Dragon, but recommen
 
 ---
 
-## Priority 3 — Real external stats provider integration
+## Priority 4 — Real external stats provider integration
 ### Goal
 Replace fixture-only external stats with a real provider or backend aggregation pipeline.
 
-### Why this is now more urgent
-The project can already load the full Data Dragon roster and latest patch data. The next major quality unlock is real matchup, synergy, and meta data instead of placeholder/fallback-only behavior.
+### Why this remains high value
+Real matchup, synergy, and meta signals are the next major quality unlock after live sync and trait fidelity.
 
 ### Deliverables
 - production external stats adapter
@@ -109,75 +134,48 @@ The project can already load the full Data Dragon roster and latest patch data. 
 4. add low-confidence/stale data logic
 5. add contract tests for real payload shapes
 
-### Recommendation
-After the next desktop companion milestone, this should likely be the next major system to build.
-
 ---
 
-## Priority 4 — AI Coach integration
+## Priority 5 — Draft UX / Live debug visibility
 ### Goal
-Connect OpenAI/Pi prompting to structured outputs from deterministic systems.
+Improve practical usability and debuggability of live sessions.
 
 ### Deliverables
-- structured AI prompt inputs
-- pick comparison flows
-- what-if explanations
-- concise vs deep explanation modes
+- desktop debug/timeline panel
+- Riot snapshot/debug visibility
+- last ingest event visibility
+- companion connection health visibility
+- easier board-source inspection
 
 ### Suggested tasks
-1. define AI input DTOs
-2. map recommendation breakdown + comp profile into prompts
-3. add UI follow-up flows
-4. prevent unsupported claims when signals are weak
-
----
-
-## Priority 5 — Draft UX expansion
-### Goal
-Improve practical usability of the drafting workflow.
-
-### Deliverables
-- what-if simulation branches
-- comparison panels
-- saved draft history
-- draft timeline/pick order improvements
-- clearer ban/pick state transitions
-
-### Suggested tasks
-1. saved scenarios
-2. side-by-side pick comparison
-3. draft export/import
-4. timeline interaction model
-
-### Note
-A good chunk of practical UX work was already done today:
-- patch selector
-- latest-patch workflow
-- visible clickable champion search results
-- unrestricted lane assignment for manual exploration
+1. show last draft-state source and timestamp
+2. show last heartbeat / companion instance id
+3. show Riot snapshot mapped / not mapped reason
+4. add event counters / lightweight timeline
+5. keep UI presentation separate from domain truth
 
 ---
 
 ## Priority 6 — Testing expansion
 ### Goal
-Keep regressions under control as live sync and all-champion support expand.
+Keep regressions under control as Riot snapshots, Desktop Client, and coach outputs expand.
 
 ### Suggested tasks
-1. more scenario fixtures
-2. backend route tests
-3. integration tests for SSE flow
-4. champion trait coverage tests
-5. recommendation regression snapshots per patch
-6. desktop companion runtime and mapper tests for rapid local updates
+1. more recorded Riot active-game fixtures
+2. more LCU / desktop runtime fixtures
+3. backend route tests for Riot snapshot responses
+4. recommendation regression snapshots per patch
+5. game-plan regression coverage
+6. SSE flow integration tests where practical
 
 ---
 
 ## Recommended immediate execution order
-1. Real desktop companion source adapter
-2. Curated champion trait dataset persistence
-3. Real external stats provider connection
-4. AI Coach orchestration
-5. Expanded UX flows
+1. Riot live-game snapshot hardening
+2. Live Game Plan / Coach expansion
+3. Curated champion trait dataset persistence
+4. Real external stats provider connection
+5. Live debug visibility and UX improvements
 
 ---
 
@@ -185,15 +183,18 @@ Keep regressions under control as live sync and all-champion support expand.
 If continuing in a new chat, start here:
 
 ### Step 1
-Implement the **desktop companion real source contract**.
+Verify why the current `RIOT_API` live game is or is not producing a mapped roster snapshot on the board.
 
 ### Step 2
-Add an **LCU-compatible polling adapter scaffold** that can later be wired to the actual local LoL client.
+Improve role inference and debug visibility for Riot live-game snapshots.
 
 ### Step 3
-Implement the **champ-select payload -> internal `DraftState` mapper**.
+Expand the deterministic game-plan outputs for live populated boards.
 
-That path keeps the project aligned with the real product goal: true live draft sync through a local bridge, not through Riot public APIs alone.
+That path keeps the project aligned with the real product goal:
+- `DESKTOP_CLIENT` for true live draft sync
+- `RIOT_API` for useful live-game roster analysis
+- deterministic coaching layered on top
 
 ---
 
