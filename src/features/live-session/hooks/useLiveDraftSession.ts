@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createBackendLiveApiClient } from '@/data/providers/live/backendApi/client'
 import type { DraftState } from '@/domain/draft/types'
 import type { LiveDraftProvider } from '@/domain/live/provider'
-import type { LiveDraftSession, LiveDraftSyncMode, LiveSnapshotSource, SummonerIdentity } from '@/domain/live/types'
+import type {
+  LiveDebugTimelineEntry,
+  LiveDraftSession,
+  LiveDraftSyncMode,
+  LiveSnapshotSource,
+  SummonerIdentity,
+} from '@/domain/live/types'
 
 interface UseLiveDraftSessionInput {
   providers: Partial<Record<LiveDraftSyncMode, LiveDraftProvider>>
@@ -52,6 +58,18 @@ function toSnapshotSource(syncMode: LiveDraftSyncMode): LiveSnapshotSource | und
   }
 
   return syncMode
+}
+
+function appendTimelineEntry(
+  currentTimeline: LiveDebugTimelineEntry[] | undefined,
+  entry: Omit<LiveDebugTimelineEntry, 'timestamp'> & { timestamp?: string },
+) {
+  const nextEntry: LiveDebugTimelineEntry = {
+    ...entry,
+    timestamp: entry.timestamp ?? new Date().toISOString(),
+  }
+
+  return [...(currentTimeline ?? []), nextEntry].slice(-8)
 }
 
 export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSessionInput) {
@@ -130,10 +148,28 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
       syncMode,
       message: 'Connecting to live draft provider...',
       snapshotDebug: toSnapshotSource(syncMode) ? { source: toSnapshotSource(syncMode)! } : undefined,
+      debugTimeline:
+        syncMode === 'DESKTOP_CLIENT'
+          ? appendTimelineEntry([], {
+              kind: 'action',
+              title: 'Desktop session starting',
+              description: 'Waiting for the desktop companion to subscribe and begin sending ingest events.',
+            })
+          : undefined,
     })
 
     const recognizedSession = await provider.recognizePlayer(effectiveIdentity)
-    setSession(recognizedSession)
+    setSession({
+      ...recognizedSession,
+      debugTimeline:
+        syncMode === 'DESKTOP_CLIENT'
+          ? appendTimelineEntry(recognizedSession.debugTimeline, {
+              kind: 'session-update',
+              title: 'Desktop session opened',
+              description: recognizedSession.message ?? 'Desktop session opened.',
+            })
+          : recognizedSession.debugTimeline,
+    })
 
     if (recognizedSession.initialDraftState) {
       draftStateCallbackRef.current(recognizedSession.initialDraftState)
@@ -161,19 +197,50 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
                   lastSnapshotAt: new Date().toISOString(),
                 }
               : currentSession.snapshotDebug,
+            debugTimeline:
+              currentSession.syncMode === 'DESKTOP_CLIENT'
+                ? appendTimelineEntry(currentSession.debugTimeline, {
+                    kind: 'draft-state',
+                    title: 'Draft-state snapshot received',
+                    description: 'The desktop companion delivered a draft-state update to the board.',
+                  })
+                : currentSession.debugTimeline,
           }
         })
       },
       (partialSession) => {
-        setSession((currentSession) => ({
-          ...currentSession,
-          ...partialSession,
-          status: partialSession.status ?? currentSession.status,
-          message: partialSession.message ?? currentSession.message,
-          snapshotDebug: partialSession.snapshotDebug ?? currentSession.snapshotDebug,
-          riotLookupDebug: partialSession.riotLookupDebug ?? currentSession.riotLookupDebug,
-          lastSyncAt: new Date().toISOString(),
-        }))
+        setSession((currentSession) => {
+          const isHeartbeat = Boolean(partialSession.lastHeartbeatAt)
+          const timelineTitle = isHeartbeat ? 'Heartbeat received' : 'Session update received'
+          const timelineDescription =
+            partialSession.message ??
+            (isHeartbeat
+              ? 'The desktop companion sent a heartbeat update.'
+              : 'The live provider sent a session update.')
+
+          return {
+            ...currentSession,
+            ...partialSession,
+            status: partialSession.status ?? currentSession.status,
+            message: partialSession.message ?? currentSession.message,
+            snapshotDebug: partialSession.snapshotDebug ?? currentSession.snapshotDebug,
+            riotLookupDebug: partialSession.riotLookupDebug ?? currentSession.riotLookupDebug,
+            lastHeartbeatAt: partialSession.lastHeartbeatAt ?? currentSession.lastHeartbeatAt,
+            companionInstanceId: partialSession.companionInstanceId ?? currentSession.companionInstanceId,
+            lastIngestEventId: partialSession.lastIngestEventId ?? currentSession.lastIngestEventId,
+            lastIngestSequenceNumber:
+              partialSession.lastIngestSequenceNumber ?? currentSession.lastIngestSequenceNumber,
+            debugTimeline:
+              currentSession.syncMode === 'DESKTOP_CLIENT'
+                ? appendTimelineEntry(currentSession.debugTimeline, {
+                    kind: isHeartbeat ? 'heartbeat' : 'session-update',
+                    title: timelineTitle,
+                    description: timelineDescription,
+                  })
+                : currentSession.debugTimeline,
+            lastSyncAt: new Date().toISOString(),
+          }
+        })
       },
     )
   }, [identity, providers, syncMode])
@@ -194,6 +261,11 @@ export function useLiveDraftSession({ providers, onDraftState }: UseLiveDraftSes
         status: 'connected',
         lastSyncAt: new Date().toISOString(),
         message: `Desktop mock bridge triggered successfully. Emitted ${result.emittedStates} draft snapshots.`,
+        debugTimeline: appendTimelineEntry(currentSession.debugTimeline, {
+          kind: 'action',
+          title: 'Desktop mock triggered',
+          description: `The backend mock route emitted ${result.emittedStates} draft snapshots for this desktop session.`,
+        }),
       }))
     } catch (error) {
       setSession((currentSession) => ({

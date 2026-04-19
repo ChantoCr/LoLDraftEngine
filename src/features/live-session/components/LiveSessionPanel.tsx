@@ -107,7 +107,9 @@ function getRiotPipelineSummary(session: LiveDraftSession) {
   const recognitionReady =
     lookupDebug.accountLookup.status === 'success' && lookupDebug.summonerLookupByPuuid.status === 'success'
   const spectatorRecoveryBlocked =
-    lookupDebug.summonerLookupByNameFallback.status === 'failed' || lookupDebug.encryptedSummonerId.status === 'failed'
+    lookupDebug.summonerLookupByAccountFallback.status === 'failed' ||
+    lookupDebug.summonerLookupByNameFallback.status === 'failed' ||
+    lookupDebug.encryptedSummonerId.status === 'failed'
   const activeGameFound = lookupDebug.activeGameLookup.status === 'success'
   const boardMapped = session.snapshotDebug?.snapshotMapped === true
 
@@ -165,6 +167,86 @@ function getRiotPipelineSummary(session: LiveDraftSession) {
           : 'Board mapping could not start because no usable spectator snapshot was available.',
     },
   ]
+}
+
+function getRiotRecommendedActions(session: LiveDraftSession) {
+  const lookupDebug = session.riotLookupDebug
+
+  if (!lookupDebug) {
+    return []
+  }
+
+  const actions: Array<{ title: string; description: string }> = []
+
+  if (
+    lookupDebug.summonerLookupByAccountFallback.status === 'failed' ||
+    lookupDebug.summonerLookupByNameFallback.status === 'failed' ||
+    lookupDebug.encryptedSummonerId.status === 'failed'
+  ) {
+    actions.push(
+      {
+        title: 'Use DESKTOP_CLIENT for real live sync',
+        description:
+          'Riot recognition worked, but Riot did not provide a usable spectator path for this session. Switch to DESKTOP_CLIENT for the real local-client draft sync path.',
+      },
+      {
+        title: 'Start a desktop session, then run the LCU companion',
+        description:
+          'Change sync mode to DESKTOP_CLIENT, start the session, then use the generated command there. The preferred real-client path is `npm run desktop:lcu -- <sessionId> latest`.',
+      },
+      {
+        title: 'Treat RIOT_API as informational only here',
+        description:
+          'In this case Riot mode can confirm the player, but it cannot continue to active-game roster mapping because spectator recovery is blocked upstream.',
+      },
+    )
+
+    return actions
+  }
+
+  if (lookupDebug.activeGameLookup.status === 'not-found') {
+    actions.push(
+      {
+        title: 'Try again while in a spectatable live game',
+        description:
+          'Riot recognition succeeded, but no active spectatable game was returned. Enter a normal live game first, then retry RIOT_API or use DESKTOP_CLIENT for stronger real-time coverage.',
+      },
+      {
+        title: 'Use DESKTOP_CLIENT if you need reliable board population',
+        description:
+          'Riot spectator availability is inconsistent across modes. DESKTOP_CLIENT remains the preferred production path for live board updates.',
+      },
+    )
+
+    return actions
+  }
+
+  if (lookupDebug.activeGameLookup.status === 'success' && session.snapshotDebug?.snapshotMapped !== true) {
+    actions.push(
+      {
+        title: 'Investigate roster mapping rather than recognition',
+        description:
+          'Riot spectator lookup succeeded, so the next issue is roster-to-board mapping. Review champion resolution, role assignment, and mapping diagnostics.',
+      },
+      {
+        title: 'Capture and validate the active-game payload',
+        description:
+          'This is now a mapping-quality case. Recorded fixtures from the live payload will help improve role inference and champion resolution regressions.',
+      },
+    )
+
+    return actions
+  }
+
+  if (session.snapshotDebug?.snapshotMapped === true) {
+    actions.push({
+      title: 'Riot snapshot is working',
+      description:
+        'Recognition, spectator lookup, and board mapping all succeeded. The next improvement area is richer coaching, game-plan outputs, or desktop-sync polish.',
+    })
+  }
+
+  return actions
 }
 
 export function LiveSessionPanel({
@@ -236,6 +318,7 @@ export function LiveSessionPanel({
         : 'Awaiting snapshot'
   const snapshotFailureReason = session.snapshotDebug?.lastMappingFailureReason ?? 'No mapping failure recorded yet.'
   const riotPipelineSummary = getRiotPipelineSummary(session)
+  const riotRecommendedActions = getRiotRecommendedActions(session)
   const riotLookupSteps = session.riotLookupDebug
     ? [
         {
@@ -245,6 +328,10 @@ export function LiveSessionPanel({
         {
           label: 'Summoner lookup by PUUID',
           step: session.riotLookupDebug.summonerLookupByPuuid,
+        },
+        {
+          label: 'Fallback summoner lookup by account id',
+          step: session.riotLookupDebug.summonerLookupByAccountFallback,
         },
         {
           label: 'Fallback summoner lookup by name',
@@ -414,6 +501,19 @@ export function LiveSessionPanel({
                 ))}
               </div>
             ) : null}
+            {riotRecommendedActions.length > 0 ? (
+              <div className="mt-3 rounded-2xl border border-cyan-900/60 bg-cyan-950/20 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">Recommended next steps</p>
+                <div className="mt-3 space-y-3">
+                  {riotRecommendedActions.map((action) => (
+                    <div key={action.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                      <p className="text-sm font-medium text-white">{action.title}</p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{action.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="mt-3 space-y-3">
               {riotLookupSteps.map(({ label, step }) => {
                 const presentation = getRiotLookupStatusPresentation(step.status)
@@ -442,6 +542,53 @@ export function LiveSessionPanel({
                 <li key={item}>{item}</li>
               ))}
             </ul>
+          </div>
+        ) : null}
+
+        {syncMode === 'DESKTOP_CLIENT' ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Desktop companion debug</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Last heartbeat</p>
+                <p className="mt-2 text-sm font-medium text-white">
+                  {session.lastHeartbeatAt ? new Date(session.lastHeartbeatAt).toLocaleString() : 'No heartbeat yet'}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Companion instance</p>
+                <p className="mt-2 break-all text-sm font-medium text-white">{session.companionInstanceId ?? 'Unknown'}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Last ingest event id</p>
+                <p className="mt-2 break-all text-sm font-medium text-white">{session.lastIngestEventId ?? 'No ingest event yet'}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Last ingest sequence</p>
+                <p className="mt-2 text-sm font-medium text-white">
+                  {typeof session.lastIngestSequenceNumber === 'number' ? session.lastIngestSequenceNumber : 'No sequence yet'}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Lightweight timeline</p>
+              <div className="mt-3 space-y-3">
+                {(session.debugTimeline ?? []).length > 0 ? (
+                  session.debugTimeline!.slice().reverse().map((entry, index) => (
+                    <div key={`${entry.timestamp}-${entry.title}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-950/80 px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium text-white">{entry.title}</p>
+                        <span className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{entry.kind}</span>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">{entry.description}</p>
+                      <p className="mt-2 text-xs text-slate-500">{new Date(entry.timestamp).toLocaleString()}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400">No desktop events recorded yet for this session.</p>
+                )}
+              </div>
+            </div>
           </div>
         ) : null}
 

@@ -88,6 +88,10 @@ export function createLiveRouter({ adapters, sessionStore }: CreateLiveRouterInp
       initialDraftState: recognizedSession.initialDraftState,
       snapshotDebug: recognizedSession.snapshotDebug,
       riotLookupDebug: recognizedSession.riotLookupDebug,
+      lastHeartbeatAt: sessionRecord.lastHeartbeatAt,
+      companionInstanceId: sessionRecord.companionInstanceId,
+      lastIngestEventId: sessionRecord.lastIngestEventId,
+      lastIngestSequenceNumber: sessionRecord.lastIngestSequenceNumber,
     })
   })
 

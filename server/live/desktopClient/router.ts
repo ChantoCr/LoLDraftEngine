@@ -102,6 +102,13 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
       updatedAt: new Date().toISOString(),
     }
 
+    const createDesktopSessionDebugPatch = (partial: { status?: typeof session.status; message?: string; lastHeartbeatAt?: string } = {}) => ({
+      ...partial,
+      companionInstanceId,
+      lastIngestEventId: payload.metadata?.eventId,
+      lastIngestSequenceNumber: payload.metadata?.sequenceNumber,
+    })
+
     if (payload.heartbeat) {
       const heartbeatMessage =
         payload.heartbeat.message ??
@@ -116,10 +123,11 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
 
       listenerNotifications += bridge.emit(sessionId, {
         type: 'session-update',
-        session: {
+        session: createDesktopSessionDebugPatch({
           status: session.status === 'error' ? 'connecting' : session.status,
           message: heartbeatMessage,
-        },
+          lastHeartbeatAt: payload.heartbeat.observedAt ?? new Date().toISOString(),
+        }),
       })
       acceptedEvents.push('heartbeat')
     }
@@ -133,7 +141,9 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
 
       listenerNotifications += bridge.emit(sessionId, {
         type: 'session-update',
-        session: payload.session,
+        session: createDesktopSessionDebugPatch({
+          ...payload.session,
+        }),
       })
       acceptedEvents.push('session-update')
     }
@@ -143,6 +153,16 @@ export function createDesktopClientRouter({ sessionStore, bridge, companionToken
         status: 'connected',
         ...sessionUpdateBase,
       })
+
+      if (payload.metadata?.eventId || typeof payload.metadata?.sequenceNumber === 'number' || companionInstanceId) {
+        listenerNotifications += bridge.emit(sessionId, {
+          type: 'session-update',
+          session: createDesktopSessionDebugPatch({
+            status: 'connected',
+            message: payload.session?.message ?? session.message,
+          }),
+        })
+      }
 
       listenerNotifications += bridge.emit(sessionId, {
         type: 'draft-state',

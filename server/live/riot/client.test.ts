@@ -38,12 +38,12 @@ describe('createRiotApiClient', () => {
     })
   })
 
-  it('falls back to summoner-name lookup when the puuid lookup does not return an encrypted summoner id', async () => {
+  it('falls back to accountId-based summoner lookup when the puuid lookup does not return an encrypted summoner id', async () => {
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', gameName: 'Tester', tagLine: 'LAN' }) })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', summonerLevel: 100, profileIconId: 1 }) })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ id: 'summoner-1', puuid: 'puuid-1', summonerLevel: 100, profileIconId: 1 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', accountId: 'account-1', summonerLevel: 100, profileIconId: 1 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ id: 'summoner-1', puuid: 'puuid-1', accountId: 'account-1', summonerLevel: 100, profileIconId: 1 }) })
       .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ gameId: 1, gameMode: 'CLASSIC', gameType: 'MATCHED_GAME' }) })
     const client = createRiotApiClient({ apiKey: 'riot-key', fetcher })
 
@@ -51,11 +51,32 @@ describe('createRiotApiClient', () => {
 
     expect(fetcher).toHaveBeenNthCalledWith(
       3,
-      expect.stringContaining('https://la1.api.riotgames.com/lol/summoner/v4/summoners/by-name/Tester'),
+      expect.stringContaining('https://la1.api.riotgames.com/lol/summoner/v4/summoners/by-account/account-1'),
       expect.anything(),
     )
     expect(recognized.activeGame?.gameMode).toBe('CLASSIC')
     expect(recognized.activeGameWarning).toBeUndefined()
+    expect(recognized.lookupDebug.summonerLookupByAccountFallback).toMatchObject({ status: 'success' })
+    expect(recognized.lookupDebug.summonerLookupByNameFallback).toMatchObject({ status: 'not-needed' })
+  })
+
+  it('uses the legacy summoner name from the summoner profile for by-name fallback when accountId recovery is unavailable', async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', gameName: 'Tester', tagLine: 'LAN' }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', name: 'LegacyTester', summonerLevel: 100, profileIconId: 1 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ id: 'summoner-1', puuid: 'puuid-1', name: 'LegacyTester', summonerLevel: 100, profileIconId: 1 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ gameId: 1, gameMode: 'CLASSIC', gameType: 'MATCHED_GAME' }) })
+    const client = createRiotApiClient({ apiKey: 'riot-key', fetcher })
+
+    const recognized = await client.recognizePlayerByRiotId({ gameName: 'Tester', tagLine: 'LAN', region: 'LAN' })
+
+    expect(fetcher).toHaveBeenNthCalledWith(
+      3,
+      expect.stringContaining('https://la1.api.riotgames.com/lol/summoner/v4/summoners/by-name/LegacyTester'),
+      expect.anything(),
+    )
+    expect(recognized.lookupDebug.summonerLookupByAccountFallback).toMatchObject({ status: 'skipped' })
     expect(recognized.lookupDebug.summonerLookupByNameFallback).toMatchObject({ status: 'success' })
   })
 
@@ -63,7 +84,7 @@ describe('createRiotApiClient', () => {
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', gameName: 'Moisox', tagLine: 'LAN' }) })
-      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', summonerLevel: 100, profileIconId: 1 }) })
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ puuid: 'puuid-1', name: 'Moisox', summonerLevel: 100, profileIconId: 1 }) })
       .mockResolvedValueOnce({
         ok: false,
         status: 403,
@@ -76,6 +97,7 @@ describe('createRiotApiClient', () => {
 
     expect(recognized.activeGame).toBeNull()
     expect(recognized.activeGameWarning).toContain('fallback summoner-name lookup for Moisox failed')
+    expect(recognized.lookupDebug.summonerLookupByAccountFallback).toMatchObject({ status: 'skipped' })
     expect(recognized.lookupDebug.summonerLookupByNameFallback).toMatchObject({ status: 'failed' })
     expect(recognized.lookupDebug.activeGameLookup).toMatchObject({ status: 'skipped' })
   })

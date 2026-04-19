@@ -29,6 +29,7 @@ describe('createRiotBackendLiveDraftAdapter', () => {
             source: 'RIOT_API',
             accountLookup: { status: 'success' },
             summonerLookupByPuuid: { status: 'success' },
+            summonerLookupByAccountFallback: { status: 'not-needed' },
             summonerLookupByNameFallback: { status: 'not-needed' },
             encryptedSummonerId: { status: 'success' },
             activeGameLookup: { status: 'success' },
@@ -106,6 +107,7 @@ describe('createRiotBackendLiveDraftAdapter', () => {
             source: 'RIOT_API',
             accountLookup: { status: 'success' },
             summonerLookupByPuuid: { status: 'success' },
+            summonerLookupByAccountFallback: { status: 'skipped' },
             summonerLookupByNameFallback: {
               status: 'failed',
               details: 'Fallback summoner-name lookup for Suli failed: Riot API request failed: 403 Forbidden - Forbidden',

@@ -9,7 +9,9 @@ interface RiotAccountDto {
 
 interface RiotSummonerDto {
   id?: string
+  accountId?: string
   puuid: string
+  name?: string
   gameName?: string
   profileIconId: number
   summonerLevel: number
@@ -70,6 +72,11 @@ function buildAccountByRiotIdUrl(gameName: string, tagLine: string, region: Riot
 function buildSummonerByPuuidUrl(puuid: string, region: RiotRegion) {
   const routing = getRiotRegionRouting(region)
   return `https://${routing.platformId}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`
+}
+
+function buildSummonerByAccountIdUrl(accountId: string, region: RiotRegion) {
+  const routing = getRiotRegionRouting(region)
+  return `https://${routing.platformId}.api.riotgames.com/lol/summoner/v4/summoners/by-account/${encodeURIComponent(accountId)}`
 }
 
 function buildSummonerByNameUrl(summonerName: string, region: RiotRegion) {
@@ -136,6 +143,7 @@ function createInitialLookupDebug(): RiotLookupDebugInfo {
     source: 'RIOT_API',
     accountLookup: initialStep(),
     summonerLookupByPuuid: initialStep(),
+    summonerLookupByAccountFallback: { status: 'not-needed' },
     summonerLookupByNameFallback: { status: 'not-needed' },
     encryptedSummonerId: initialStep(),
     activeGameLookup: initialStep(),
@@ -158,6 +166,7 @@ async function resolveEncryptedSummonerId({
   lookupDebug: RiotLookupDebugInfo
 }) {
   if (summoner.id) {
+    lookupDebug.summonerLookupByAccountFallback = { status: 'not-needed' }
     lookupDebug.summonerLookupByNameFallback = { status: 'not-needed' }
     lookupDebug.encryptedSummonerId = {
       status: 'success',
@@ -170,7 +179,58 @@ async function resolveEncryptedSummonerId({
     }
   }
 
-  const fallbackSummonerNames = [...new Set([summoner.gameName, account.gameName].filter(Boolean) as string[])]
+  if (summoner.accountId) {
+    let fallbackSummonerByAccount: RiotSummonerDto | null
+
+    try {
+      fallbackSummonerByAccount = await fetchRiotJson<RiotSummonerDto | null>(
+        fetcher,
+        buildSummonerByAccountIdUrl(summoner.accountId, region),
+        apiKey,
+      )
+    } catch (error) {
+      lookupDebug.summonerLookupByAccountFallback = {
+        status: 'failed',
+        details: error instanceof Error ? error.message : String(error),
+      }
+      fallbackSummonerByAccount = null
+    }
+
+    if (!fallbackSummonerByAccount) {
+      lookupDebug.summonerLookupByAccountFallback =
+        lookupDebug.summonerLookupByAccountFallback.status === 'failed'
+          ? lookupDebug.summonerLookupByAccountFallback
+          : {
+              status: 'not-found',
+              details: 'No summoner profile was returned from the accountId-based fallback lookup.',
+            }
+    } else if (fallbackSummonerByAccount.id) {
+      lookupDebug.summonerLookupByAccountFallback = {
+        status: 'success',
+        details: 'Resolved encrypted summoner id through accountId-based summoner fallback lookup.',
+      }
+      lookupDebug.summonerLookupByNameFallback = { status: 'not-needed' }
+      lookupDebug.encryptedSummonerId = {
+        status: 'success',
+        details: 'Encrypted summoner id was recovered through accountId-based summoner fallback lookup.',
+      }
+
+      return {
+        encryptedSummonerId: fallbackSummonerByAccount.id,
+        summoner: {
+          ...fallbackSummonerByAccount,
+          puuid: fallbackSummonerByAccount.puuid || summoner.puuid,
+        },
+      }
+    }
+  } else {
+    lookupDebug.summonerLookupByAccountFallback = {
+      status: 'skipped',
+      details: 'No encrypted accountId was available for an accountId-based fallback lookup.',
+    }
+  }
+
+  const fallbackSummonerNames = [...new Set([summoner.name, account.gameName].filter(Boolean) as string[])]
 
   if (fallbackSummonerNames.length === 0) {
     lookupDebug.summonerLookupByNameFallback = {
@@ -179,7 +239,7 @@ async function resolveEncryptedSummonerId({
     }
     lookupDebug.encryptedSummonerId = {
       status: 'failed',
-      details: 'No encrypted summoner id was available after the primary summoner lookup.',
+      details: 'No encrypted summoner id was available after the primary and fallback summoner lookups.',
     }
 
     return {
@@ -247,14 +307,14 @@ async function resolveEncryptedSummonerId({
 
   lookupDebug.encryptedSummonerId = {
     status: 'failed',
-    details: 'No encrypted summoner id was available after fallback summoner-name lookup.',
+    details: 'No encrypted summoner id was available after accountId and summoner-name fallback lookups.',
   }
 
   return {
     encryptedSummonerId: undefined,
     summoner,
     warning:
-      'Riot recognized the player profile, but did not return an encrypted summoner id for spectator lookup. Active-game detection was skipped after fallback summoner-name lookup.',
+      'Riot recognized the player profile, but did not return an encrypted summoner id for spectator lookup. Active-game detection was skipped after accountId and summoner-name fallback lookups.',
   }
 }
 

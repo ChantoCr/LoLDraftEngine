@@ -43,9 +43,25 @@ describe('createDesktopClientRouter', () => {
 
     expect(listener).toHaveBeenNthCalledWith(1, {
       type: 'session-update',
-      session: { status: 'connected', message: 'Bridge connected.' },
+      session: {
+        status: 'connected',
+        message: 'Bridge connected.',
+        companionInstanceId: 'companion-1',
+        lastIngestEventId: 'evt-1',
+        lastIngestSequenceNumber: undefined,
+      },
     })
     expect(listener).toHaveBeenNthCalledWith(2, {
+      type: 'session-update',
+      session: {
+        status: 'connected',
+        message: 'Bridge connected.',
+        companionInstanceId: 'companion-1',
+        lastIngestEventId: 'evt-1',
+        lastIngestSequenceNumber: undefined,
+      },
+    })
+    expect(listener).toHaveBeenNthCalledWith(3, {
       type: 'draft-state',
       draftState: mockLiveDraftTimeline[0],
     })
@@ -54,7 +70,7 @@ describe('createDesktopClientRouter', () => {
         ok: true,
         sessionId: 'desktop-session-1',
         acceptedEvents: ['session-update', 'draft-state'],
-        listenerNotifications: 2,
+        listenerNotifications: 3,
       }),
     )
   })
@@ -86,6 +102,10 @@ describe('createDesktopClientRouter', () => {
       session: {
         status: 'connected',
         message: 'Desktop companion heartbeat received from companion-1.',
+        lastHeartbeatAt: '2026-04-15T23:50:00.000Z',
+        companionInstanceId: 'companion-1',
+        lastIngestEventId: 'heartbeat-1',
+        lastIngestSequenceNumber: undefined,
       },
     })
     expect(response.json).toHaveBeenCalledWith(

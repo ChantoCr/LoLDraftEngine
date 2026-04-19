@@ -55,6 +55,10 @@ export function createBackendApiLiveDraftProvider({
           initialDraftState: response.initialDraftState,
           snapshotDebug: response.snapshotDebug,
           riotLookupDebug: response.riotLookupDebug,
+          lastHeartbeatAt: response.lastHeartbeatAt,
+          companionInstanceId: response.companionInstanceId,
+          lastIngestEventId: response.lastIngestEventId,
+          lastIngestSequenceNumber: response.lastIngestSequenceNumber,
         }
       } catch (error) {
         return {

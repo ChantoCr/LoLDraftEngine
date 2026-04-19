@@ -47,9 +47,17 @@ export interface RiotLookupDebugInfo {
   source: 'RIOT_API'
   accountLookup: RiotLookupStepDebugInfo
   summonerLookupByPuuid: RiotLookupStepDebugInfo
+  summonerLookupByAccountFallback: RiotLookupStepDebugInfo
   summonerLookupByNameFallback: RiotLookupStepDebugInfo
   encryptedSummonerId: RiotLookupStepDebugInfo
   activeGameLookup: RiotLookupStepDebugInfo
+}
+
+export interface LiveDebugTimelineEntry {
+  timestamp: string
+  kind: 'session-update' | 'draft-state' | 'heartbeat' | 'action'
+  title: string
+  description: string
 }
 
 export interface LiveDraftSession {
@@ -62,4 +70,9 @@ export interface LiveDraftSession {
   initialDraftState?: DraftState
   snapshotDebug?: LiveSnapshotDebugInfo
   riotLookupDebug?: RiotLookupDebugInfo
+  lastHeartbeatAt?: string
+  companionInstanceId?: string
+  lastIngestEventId?: string
+  lastIngestSequenceNumber?: number
+  debugTimeline?: LiveDebugTimelineEntry[]
 }

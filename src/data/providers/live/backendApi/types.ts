@@ -26,6 +26,10 @@ export interface RecognizePlayerResponse {
   initialDraftState?: DraftState
   snapshotDebug?: LiveSnapshotDebugInfo
   riotLookupDebug?: RiotLookupDebugInfo
+  lastHeartbeatAt?: string
+  companionInstanceId?: string
+  lastIngestEventId?: string
+  lastIngestSequenceNumber?: number
 }
 
 export interface TriggerDesktopMockSequenceResponse {

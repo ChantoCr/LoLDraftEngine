@@ -22,6 +22,10 @@ export function createDesktopClientBackendLiveDraftAdapter({
         session: {
           status: 'connected',
           message: 'Desktop-client stream subscribed. Waiting for bridge draft-state events.',
+          lastHeartbeatAt: session.lastHeartbeatAt,
+          companionInstanceId: session.companionInstanceId,
+          lastIngestEventId: session.lastIngestEventId,
+          lastIngestSequenceNumber: session.lastIngestSequenceNumber,
         },
       })
 
