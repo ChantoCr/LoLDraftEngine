@@ -8,12 +8,9 @@ interface RiotAccountDto {
 }
 
 interface RiotSummonerDto {
-  id?: string
-  accountId?: string
   puuid: string
-  name?: string
-  gameName?: string
   profileIconId: number
+  revisionDate?: number
   summonerLevel: number
 }
 
@@ -47,6 +44,28 @@ interface CreateRiotApiClientInput {
   fetcher?: typeof fetch
 }
 
+class RiotApiRequestError extends Error {
+  status: number
+  statusText: string
+
+  constructor(message: string, { status, statusText }: { status: number; statusText: string }) {
+    super(message)
+    this.name = 'RiotApiRequestError'
+    this.status = status
+    this.statusText = statusText
+  }
+}
+
+class RiotLookupError extends Error {
+  lookupDebug: RiotLookupDebugInfo
+
+  constructor(message: string, lookupDebug: RiotLookupDebugInfo) {
+    super(message)
+    this.name = 'RiotLookupError'
+    this.lookupDebug = lookupDebug
+  }
+}
+
 export interface RiotRecognizedPlayer {
   account: RiotAccountDto
   summoner: RiotSummonerDto
@@ -74,19 +93,9 @@ function buildSummonerByPuuidUrl(puuid: string, region: RiotRegion) {
   return `https://${routing.platformId}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`
 }
 
-function buildSummonerByAccountIdUrl(accountId: string, region: RiotRegion) {
+function buildActiveGameUrl(puuid: string, region: RiotRegion) {
   const routing = getRiotRegionRouting(region)
-  return `https://${routing.platformId}.api.riotgames.com/lol/summoner/v4/summoners/by-account/${encodeURIComponent(accountId)}`
-}
-
-function buildSummonerByNameUrl(summonerName: string, region: RiotRegion) {
-  const routing = getRiotRegionRouting(region)
-  return `https://${routing.platformId}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`
-}
-
-function buildActiveGameUrl(encryptedSummonerId: string, region: RiotRegion) {
-  const routing = getRiotRegionRouting(region)
-  return `https://${routing.platformId}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(encryptedSummonerId)}`
+  return `https://${routing.platformId}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${encodeURIComponent(puuid)}`
 }
 
 async function readRiotErrorMessage(response: Response, fallbackMessage: string) {
@@ -125,15 +134,45 @@ async function fetchRiotJson<TResponse>(fetcher: typeof fetch, url: string, apiK
   }
 
   if (!response.ok) {
-    throw new Error(await readRiotErrorMessage(response, `Riot API request failed: ${response.status} ${response.statusText}`))
+    throw new RiotApiRequestError(await readRiotErrorMessage(response, `Riot API request failed: ${response.status} ${response.statusText}`), {
+      status: response.status,
+      statusText: response.statusText,
+    })
   }
 
   return (await response.json()) as TResponse
 }
 
-function withLookupContext(stepLabel: string, error: unknown) {
-  const message = error instanceof Error ? error.message : String(error)
-  return new Error(`${stepLabel}: ${message}`)
+function cloneLookupDebug(lookupDebug: RiotLookupDebugInfo): RiotLookupDebugInfo {
+  return {
+    source: lookupDebug.source,
+    accountLookup: { ...lookupDebug.accountLookup },
+    summonerLookupByPuuid: { ...lookupDebug.summonerLookupByPuuid },
+    spectatorLookupPath: { ...lookupDebug.spectatorLookupPath },
+    activeGameLookup: { ...lookupDebug.activeGameLookup },
+  }
+}
+
+function buildFriendlyRiotLookupFailureMessage(error: unknown) {
+  if (error instanceof RiotApiRequestError) {
+    if (error.status === 401 && error.message.toLowerCase().includes('unknown apikey')) {
+      return 'RIOT_API_KEY is invalid or expired. Generate a fresh Riot Developer Portal key, set it in `.env.local` as `RIOT_API_KEY=...`, restart `npm run server:dev`, and retry. The backend reads `.env` and `.env.local`, not `.env.example`. If you already updated `.env.local`, check whether a stale shell/system `RIOT_API_KEY` is overriding it.'
+    }
+
+    if (error.status === 401) {
+      return 'Riot rejected the API key with 401 Unauthorized. Generate a fresh Riot Developer Portal key, set it in `.env.local`, restart the backend, and retry.'
+    }
+
+    if (error.status === 429) {
+      return 'Riot rate limits were hit for this API key. Wait briefly, then retry the request.'
+    }
+  }
+
+  return error instanceof Error ? error.message : String(error)
+}
+
+function withLookupContext(stepLabel: string, error: unknown, lookupDebug: RiotLookupDebugInfo) {
+  return new RiotLookupError(`${stepLabel}: ${buildFriendlyRiotLookupFailureMessage(error)}`, cloneLookupDebug(lookupDebug))
 }
 
 function createInitialLookupDebug(): RiotLookupDebugInfo {
@@ -143,178 +182,15 @@ function createInitialLookupDebug(): RiotLookupDebugInfo {
     source: 'RIOT_API',
     accountLookup: initialStep(),
     summonerLookupByPuuid: initialStep(),
-    summonerLookupByAccountFallback: { status: 'not-needed' },
-    summonerLookupByNameFallback: { status: 'not-needed' },
-    encryptedSummonerId: initialStep(),
+    spectatorLookupPath: initialStep(),
     activeGameLookup: initialStep(),
   }
 }
 
-async function resolveEncryptedSummonerId({
-  fetcher,
-  apiKey,
-  region,
-  account,
-  summoner,
-  lookupDebug,
-}: {
-  fetcher: typeof fetch
-  apiKey: string
-  region: RiotRegion
-  account: RiotAccountDto
-  summoner: RiotSummonerDto
-  lookupDebug: RiotLookupDebugInfo
-}) {
-  if (summoner.id) {
-    lookupDebug.summonerLookupByAccountFallback = { status: 'not-needed' }
-    lookupDebug.summonerLookupByNameFallback = { status: 'not-needed' }
-    lookupDebug.encryptedSummonerId = {
-      status: 'success',
-      details: 'Encrypted summoner id was returned directly from the PUUID-based summoner lookup.',
-    }
-
-    return {
-      encryptedSummonerId: summoner.id,
-      summoner,
-    }
-  }
-
-  if (summoner.accountId) {
-    let fallbackSummonerByAccount: RiotSummonerDto | null
-
-    try {
-      fallbackSummonerByAccount = await fetchRiotJson<RiotSummonerDto | null>(
-        fetcher,
-        buildSummonerByAccountIdUrl(summoner.accountId, region),
-        apiKey,
-      )
-    } catch (error) {
-      lookupDebug.summonerLookupByAccountFallback = {
-        status: 'failed',
-        details: error instanceof Error ? error.message : String(error),
-      }
-      fallbackSummonerByAccount = null
-    }
-
-    if (!fallbackSummonerByAccount) {
-      lookupDebug.summonerLookupByAccountFallback =
-        lookupDebug.summonerLookupByAccountFallback.status === 'failed'
-          ? lookupDebug.summonerLookupByAccountFallback
-          : {
-              status: 'not-found',
-              details: 'No summoner profile was returned from the accountId-based fallback lookup.',
-            }
-    } else if (fallbackSummonerByAccount.id) {
-      lookupDebug.summonerLookupByAccountFallback = {
-        status: 'success',
-        details: 'Resolved encrypted summoner id through accountId-based summoner fallback lookup.',
-      }
-      lookupDebug.summonerLookupByNameFallback = { status: 'not-needed' }
-      lookupDebug.encryptedSummonerId = {
-        status: 'success',
-        details: 'Encrypted summoner id was recovered through accountId-based summoner fallback lookup.',
-      }
-
-      return {
-        encryptedSummonerId: fallbackSummonerByAccount.id,
-        summoner: {
-          ...fallbackSummonerByAccount,
-          puuid: fallbackSummonerByAccount.puuid || summoner.puuid,
-        },
-      }
-    }
-  } else {
-    lookupDebug.summonerLookupByAccountFallback = {
-      status: 'skipped',
-      details: 'No encrypted accountId was available for an accountId-based fallback lookup.',
-    }
-  }
-
-  const fallbackSummonerNames = [...new Set([summoner.name, account.gameName].filter(Boolean) as string[])]
-
-  if (fallbackSummonerNames.length === 0) {
-    lookupDebug.summonerLookupByNameFallback = {
-      status: 'skipped',
-      details: 'No fallback summoner name was available for a secondary lookup.',
-    }
-    lookupDebug.encryptedSummonerId = {
-      status: 'failed',
-      details: 'No encrypted summoner id was available after the primary and fallback summoner lookups.',
-    }
-
-    return {
-      encryptedSummonerId: undefined,
-      summoner,
-      warning:
-        'Riot recognized the player profile, but did not return an encrypted summoner id for spectator lookup and no fallback summoner name was available. Active-game detection was skipped.',
-    }
-  }
-
-  for (const summonerName of fallbackSummonerNames) {
-    let fallbackSummoner: RiotSummonerDto | null
-
-    try {
-      fallbackSummoner = await fetchRiotJson<RiotSummonerDto | null>(
-        fetcher,
-        buildSummonerByNameUrl(summonerName, region),
-        apiKey,
-      )
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      lookupDebug.summonerLookupByNameFallback = {
-        status: 'failed',
-        details: `Fallback summoner-name lookup for ${summonerName} failed: ${message}`,
-      }
-      lookupDebug.encryptedSummonerId = {
-        status: 'failed',
-        details: 'No encrypted summoner id was available because the fallback summoner-name lookup failed.',
-      }
-
-      return {
-        encryptedSummonerId: undefined,
-        summoner,
-        warning: `Riot recognized the player profile, but fallback summoner-name lookup for ${summonerName} failed (${message}). Active-game detection was skipped.`,
-      }
-    }
-
-    if (!fallbackSummoner) {
-      lookupDebug.summonerLookupByNameFallback = {
-        status: 'not-found',
-        details: `No summoner profile was returned for fallback name ${summonerName}.`,
-      }
-      continue
-    }
-
-    if (fallbackSummoner.id) {
-      lookupDebug.summonerLookupByNameFallback = {
-        status: 'success',
-        details: `Resolved encrypted summoner id through fallback summoner-name lookup for ${summonerName}.`,
-      }
-      lookupDebug.encryptedSummonerId = {
-        status: 'success',
-        details: `Encrypted summoner id was recovered through fallback summoner-name lookup for ${summonerName}.`,
-      }
-
-      return {
-        encryptedSummonerId: fallbackSummoner.id,
-        summoner: {
-          ...fallbackSummoner,
-          puuid: fallbackSummoner.puuid || summoner.puuid,
-        },
-      }
-    }
-  }
-
-  lookupDebug.encryptedSummonerId = {
-    status: 'failed',
-    details: 'No encrypted summoner id was available after accountId and summoner-name fallback lookups.',
-  }
-
-  return {
-    encryptedSummonerId: undefined,
-    summoner,
-    warning:
-      'Riot recognized the player profile, but did not return an encrypted summoner id for spectator lookup. Active-game detection was skipped after accountId and summoner-name fallback lookups.',
+function markSpectatorLookupAsPuuidBased(lookupDebug: RiotLookupDebugInfo) {
+  lookupDebug.spectatorLookupPath = {
+    status: 'success',
+    details: 'Using the docs-aligned spectator-v5 active-game lookup path with the player PUUID directly.',
   }
 }
 
@@ -333,9 +209,9 @@ export function createRiotApiClient({ apiKey, fetcher = fetch }: CreateRiotApiCl
       } catch (error) {
         lookupDebug.accountLookup = {
           status: 'failed',
-          details: error instanceof Error ? error.message : String(error),
+          details: buildFriendlyRiotLookupFailureMessage(error),
         }
-        throw withLookupContext('Riot account lookup failed', error)
+        throw withLookupContext('Riot account lookup failed', error, lookupDebug)
       }
 
       if (!account) {
@@ -362,9 +238,9 @@ export function createRiotApiClient({ apiKey, fetcher = fetch }: CreateRiotApiCl
       } catch (error) {
         lookupDebug.summonerLookupByPuuid = {
           status: 'failed',
-          details: error instanceof Error ? error.message : String(error),
+          details: buildFriendlyRiotLookupFailureMessage(error),
         }
-        throw withLookupContext('Riot summoner profile lookup failed', error)
+        throw withLookupContext('Riot summoner profile lookup failed', error, lookupDebug)
       }
 
       if (!summoner) {
@@ -377,63 +253,46 @@ export function createRiotApiClient({ apiKey, fetcher = fetch }: CreateRiotApiCl
 
       lookupDebug.summonerLookupByPuuid = {
         status: 'success',
-        details: summoner.id
-          ? 'PUUID-based summoner lookup returned an encrypted summoner id.'
-          : 'PUUID-based summoner lookup returned a summoner profile without an encrypted summoner id.',
+        details: 'PUUID-based summoner lookup returned the current SummonerDTO fields documented by Riot (profile icon, revision date, puuid, summoner level).',
       }
 
       let activeGame: RiotCurrentGameInfoDto | null = null
       let activeGameWarning: string | undefined
-      const spectatorSummonerResolution = await resolveEncryptedSummonerId({
-        fetcher,
-        apiKey,
-        region,
-        account,
-        summoner,
-        lookupDebug,
-      })
 
-      summoner = spectatorSummonerResolution.summoner
+      markSpectatorLookupAsPuuidBased(lookupDebug)
 
-      if (!spectatorSummonerResolution.encryptedSummonerId) {
-        lookupDebug.activeGameLookup = {
-          status: 'skipped',
-          details: 'Active-game spectator lookup was skipped because no encrypted summoner id was available.',
-        }
-        activeGameWarning = spectatorSummonerResolution.warning
-      } else {
-        try {
-          activeGame = await fetchRiotJson<RiotCurrentGameInfoDto | null>(
-            fetcher,
-            buildActiveGameUrl(spectatorSummonerResolution.encryptedSummonerId, region),
-            apiKey,
-          )
-          lookupDebug.activeGameLookup = activeGame
-            ? {
-                status: 'success',
-                details: `Active game ${activeGame.gameMode}/${activeGame.gameType} was returned by Riot spectator APIs.`,
-              }
-            : {
-                status: 'not-found',
-                details: 'No active spectatable game was returned for this player.',
-              }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error)
-
-          if (message.includes('Exception decrypting undefined')) {
-            lookupDebug.activeGameLookup = {
-              status: 'failed',
-              details: message,
+      try {
+        activeGame = await fetchRiotJson<RiotCurrentGameInfoDto | null>(
+          fetcher,
+          buildActiveGameUrl(account.puuid, region),
+          apiKey,
+        )
+        lookupDebug.activeGameLookup = activeGame
+          ? {
+              status: 'success',
+              details: `Active game ${activeGame.gameMode}/${activeGame.gameType} was returned by Riot spectator APIs using the player PUUID.`,
             }
-            activeGameWarning =
-              'Riot recognized the player profile, but spectator active-game lookup could not resolve a valid encrypted summoner id. Active-game detection was skipped.'
-          } else {
-            lookupDebug.activeGameLookup = {
-              status: 'failed',
-              details: message,
+          : {
+              status: 'not-found',
+              details: 'No active spectatable game was returned for this player.',
             }
-            throw withLookupContext('Riot active-game lookup failed', error)
+      } catch (error) {
+        const message = buildFriendlyRiotLookupFailureMessage(error)
+
+        if (error instanceof RiotApiRequestError && error.status === 403) {
+          lookupDebug.activeGameLookup = {
+            status: 'forbidden',
+            details: message,
           }
+          activeGameWarning =
+            'Riot spectator-v5 active-game lookup returned 403 Forbidden for this player/session. Recognition still succeeded, but spectator roster access is unavailable here.'
+        } else {
+          lookupDebug.activeGameLookup = {
+            status: 'unavailable',
+            details: message,
+          }
+          activeGameWarning =
+            'Riot spectator-v5 active-game lookup is currently unavailable. Recognition still succeeded, but no live roster could be fetched right now.'
         }
       }
 

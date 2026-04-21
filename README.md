@@ -37,6 +37,12 @@ cp .env.example .env.local
 Then set your own values in `.env.local`, especially:
 - `RIOT_API_KEY=...`
 
+Important Riot key troubleshooting:
+- `.env.example` is only a template, not the active backend config
+- the backend reads `.env` and `.env.local`
+- `401 Unauthorized - Unknown apikey` means the configured Riot key is invalid or expired
+- if you are using a temporary Riot development key, generate a fresh one in the Riot Developer Portal and restart `npm run server:dev`
+
 Frontend + backend companion in two terminals:
 
 ```bash
@@ -212,9 +218,14 @@ Current desktop-client reality:
 
 `RIOT_API` mode can currently help with:
 - Riot account recognition
-- summoner lookup
-- active-game detection
+- summoner profile metadata lookup
+- active-game detection through spectator APIs
 - active-game roster snapshot mapping into the draft board when spectator data is available
+
+Important current implementation note from the official Riot docs:
+- `summoner-v4` by PUUID should not be treated as the source of legacy encrypted summoner ids / account ids / legacy names
+- `spectator-v5` active-game lookup should use the player's **PUUID directly**
+- Data Dragon is unrelated to this live lookup path; DDragon only provides static patch/champion data
 
 It cannot provide real champ-select pick/ban streaming through public Riot APIs alone.
 
@@ -222,6 +233,7 @@ Practical use of `RIOT_API` now:
 - recognize the player
 - detect a live game when Riot spectator APIs expose it
 - map the current live-game roster into internal `DraftState` for composition/matchup/coach analysis
+- surface detailed lookup diagnostics when Riot does not return an active spectator game
 
 For true live draft sync, the long-term path remains:
 - `DESKTOP_CLIENT`
@@ -243,8 +255,11 @@ For true live draft sync, the long-term path remains:
 - desktop-client bridge ingestion routes now exist, including auth/heartbeat-aware ingest handling
 - desktop companion mock, file-based, and LCU helper runtimes now exist
 - Riot API mode now stays informational/connected instead of pretending champ-select streaming is available
+- Riot active-game lookup now follows the official Riot docs more closely by using spectator-v5 with the player's PUUID directly instead of depending on legacy encrypted-summoner fallback assumptions
 - Riot active-game roster snapshots can now be mapped into internal `DraftState` when spectator APIs expose the live game roster
-- the live session panel now includes copyable session ids, companion commands, a desktop mock trigger button, troubleshooting guidance, and clearer live-status indicators
+- Riot role inference is now heuristic-based instead of simple participant order only
+- the live session panel now includes copyable session ids, companion commands, troubleshooting guidance, clearer live-status indicators, Riot lookup diagnostics, Riot next-step guidance, and a desktop mock trigger button
+- the desktop-client flow now includes a compact debug panel with last heartbeat, companion instance id, last ingest event id / sequence, and a lightweight timeline of recent companion events
 - a deterministic live game-plan layer now exists for:
   - your champion’s job
   - ally comp identity
@@ -259,13 +274,13 @@ For true live draft sync, the long-term path remains:
 Current validated state:
 - `npm run test:run` ✅
 - `npm run build` ✅
-- 38 test files
-- 78 tests passing
+- 39 test files
+- 83 tests passing
 
 ## Next likely milestones
 
-1. harden RIOT_API live-game roster snapshots with better role inference and clearer spectator-availability messaging
-2. persist curated champion trait datasets with patch-aware overrides
-3. ingest real patch meta / matchup / synergy data through the external stats adapter
-4. expand the live game-plan / AI Coach layer with more matchup- and role-specific guidance
+1. validate the updated `RIOT_API` spectator-v5 PUUID flow against real live games and capture recorded fixtures for success / not-found / forbidden cases
+2. expand the live game-plan / AI Coach layer with lane-phase, mid-game, objective, and matchup-aware guidance
+3. persist curated champion trait datasets with patch-aware overrides
+4. ingest real patch meta / matchup / synergy data through the external stats adapter
 5. expand draft history, what-if, and comparison workflows

@@ -72,14 +72,24 @@ function getLiveStatusIndicator(session: LiveDraftSession, syncMode: LiveDraftSy
   }
 }
 
-function getRiotTroubleshootingItems() {
-  return [
+function getRiotTroubleshootingItems(session?: LiveDraftSession) {
+  const items = [
     'Use your exact Riot ID: game name + tagline. Example: `TeriyakiBoy` + `LAN` for `TeriyakiBoy#LAN`.',
     'The selected region is your League shard/platform, not just the Riot tagline. Keep `LAN` only if the account actually plays on LAN / la1.',
     'Riot API mode can recognize the player and sometimes confirm an active game, but it cannot stream champ select.',
     'Riot active-game checks work for active spectatable games, not champ select. Practice Tool and some non-standard sessions may not be available through spectator APIs.',
     'If desktop LCU mode already works, use DESKTOP_CLIENT as the real live draft path. Riot mode is only a secondary recognition check.',
   ]
+
+  if (session?.message?.includes('RIOT_API_KEY is invalid or expired') || session?.message?.includes('Unknown apikey')) {
+    items.unshift(
+      'Your Riot API key is the current blocker. Development keys from the Riot Developer Portal expire, so generate a fresh key, put it in `.env.local` as `RIOT_API_KEY=...`, then restart `npm run server:dev`.',
+      'Do not rely on `.env.example` for the live backend. The backend reads `.env` and `.env.local` only.',
+      'If you already updated `.env.local` and still get 401 Unknown apikey, check whether a stale shell/system `RIOT_API_KEY` is overriding the file value.',
+    )
+  }
+
+  return items
 }
 
 function getRiotLookupStatusPresentation(status: RiotLookupStepStatus) {
@@ -88,6 +98,10 @@ function getRiotLookupStatusPresentation(status: RiotLookupStepStatus) {
       return { label: 'Success', tone: 'text-emerald-300' }
     case 'failed':
       return { label: 'Failed', tone: 'text-rose-300' }
+    case 'forbidden':
+      return { label: 'Forbidden', tone: 'text-amber-300' }
+    case 'unavailable':
+      return { label: 'Unavailable', tone: 'text-amber-300' }
     case 'not-found':
       return { label: 'Not found', tone: 'text-amber-300' }
     case 'not-needed':
@@ -106,11 +120,9 @@ function getRiotPipelineSummary(session: LiveDraftSession) {
 
   const recognitionReady =
     lookupDebug.accountLookup.status === 'success' && lookupDebug.summonerLookupByPuuid.status === 'success'
-  const spectatorRecoveryBlocked =
-    lookupDebug.summonerLookupByAccountFallback.status === 'failed' ||
-    lookupDebug.summonerLookupByNameFallback.status === 'failed' ||
-    lookupDebug.encryptedSummonerId.status === 'failed'
   const activeGameFound = lookupDebug.activeGameLookup.status === 'success'
+  const activeGameForbidden = lookupDebug.activeGameLookup.status === 'forbidden'
+  const activeGameUnavailable = lookupDebug.activeGameLookup.status === 'unavailable'
   const boardMapped = session.snapshotDebug?.snapshotMapped === true
 
   return [
@@ -123,38 +135,40 @@ function getRiotPipelineSummary(session: LiveDraftSession) {
         : 'Recognition did not fully complete. Check the detailed lookup steps below.',
     },
     {
-      label: 'Spectator recovery',
-      value: spectatorRecoveryBlocked ? 'Blocked' : lookupDebug.encryptedSummonerId.status === 'success' ? 'Ready' : 'Waiting',
-      tone: spectatorRecoveryBlocked
-        ? 'text-amber-300'
-        : lookupDebug.encryptedSummonerId.status === 'success'
-          ? 'text-emerald-300'
-          : 'text-slate-300',
-      description: spectatorRecoveryBlocked
-        ? 'Riot did not provide a usable encrypted summoner id, so spectator lookup could not continue.'
-        : lookupDebug.encryptedSummonerId.status === 'success'
-          ? 'A usable encrypted summoner id is available for spectator lookup.'
-          : 'Spectator recovery has not completed yet.',
+      label: 'Spectator path',
+      value: lookupDebug.spectatorLookupPath.status === 'success' ? 'PUUID direct' : 'Pending',
+      tone: lookupDebug.spectatorLookupPath.status === 'success' ? 'text-emerald-300' : 'text-slate-300',
+      description:
+        lookupDebug.spectatorLookupPath.details ??
+        'The spectator-v5 lookup path should use the player PUUID directly per the official Riot docs.',
     },
     {
       label: 'Active game',
       value: activeGameFound
         ? 'Found'
-        : lookupDebug.activeGameLookup.status === 'not-found'
-          ? 'Not found'
-          : lookupDebug.activeGameLookup.status === 'skipped'
-            ? 'Not attempted'
-            : 'Unavailable',
+        : activeGameForbidden
+          ? 'Forbidden'
+          : activeGameUnavailable
+            ? 'Unavailable'
+            : lookupDebug.activeGameLookup.status === 'not-found'
+              ? 'Not found'
+              : lookupDebug.activeGameLookup.status === 'skipped'
+                ? 'Not attempted'
+                : 'Pending',
       tone: activeGameFound
         ? 'text-emerald-300'
-        : lookupDebug.activeGameLookup.status === 'not-found'
+        : activeGameForbidden || activeGameUnavailable || lookupDebug.activeGameLookup.status === 'not-found'
           ? 'text-amber-300'
           : 'text-slate-300',
       description: activeGameFound
         ? 'Riot spectator APIs returned an active game roster.'
-        : lookupDebug.activeGameLookup.status === 'not-found'
-          ? 'No active spectatable game was returned for this player.'
-          : 'Active-game lookup did not complete because spectator recovery was not available.',
+        : activeGameForbidden
+          ? 'Riot recognized the player, but spectator roster access was forbidden for this session.'
+          : activeGameUnavailable
+            ? 'Riot recognized the player, but spectator lookup is temporarily unavailable.'
+            : lookupDebug.activeGameLookup.status === 'not-found'
+              ? 'No active spectatable game was returned for this player.'
+              : 'Active-game lookup has not completed yet.',
     },
     {
       label: 'Board mapping',
@@ -178,26 +192,44 @@ function getRiotRecommendedActions(session: LiveDraftSession) {
 
   const actions: Array<{ title: string; description: string }> = []
 
-  if (
-    lookupDebug.summonerLookupByAccountFallback.status === 'failed' ||
-    lookupDebug.summonerLookupByNameFallback.status === 'failed' ||
-    lookupDebug.encryptedSummonerId.status === 'failed'
-  ) {
+  if (session.message?.includes('RIOT_API_KEY is invalid or expired') || session.message?.includes('Unknown apikey')) {
     actions.push(
       {
-        title: 'Use DESKTOP_CLIENT for real live sync',
+        title: 'Replace the Riot API key and restart the backend',
         description:
-          'Riot recognition worked, but Riot did not provide a usable spectator path for this session. Switch to DESKTOP_CLIENT for the real local-client draft sync path.',
+          'Generate a fresh Riot Developer Portal key, save it in `.env.local` as `RIOT_API_KEY=...`, then restart `npm run server:dev` so the backend loads the new key.',
       },
       {
-        title: 'Start a desktop session, then run the LCU companion',
+        title: 'Do not use `.env.example` as the active backend config',
         description:
-          'Change sync mode to DESKTOP_CLIENT, start the session, then use the generated command there. The preferred real-client path is `npm run desktop:lcu -- <sessionId> latest`.',
+          'The backend reads `.env` and `.env.local`. `.env.example` is only a template and should not be treated as the live configuration source.',
       },
       {
-        title: 'Treat RIOT_API as informational only here',
+        title: 'Treat this as a backend credentials issue, not a Riot ID issue',
         description:
-          'In this case Riot mode can confirm the player, but it cannot continue to active-game roster mapping because spectator recovery is blocked upstream.',
+          'A 401 Unknown apikey means the request reached Riot, but the configured backend key was rejected before account recognition could complete.',
+      },
+    )
+
+    return actions
+  }
+
+  if (lookupDebug.activeGameLookup.status === 'forbidden' || lookupDebug.activeGameLookup.status === 'unavailable') {
+    actions.push(
+      {
+        title: 'Treat this as a spectator availability result, not a recognition failure',
+        description:
+          'The Riot account path worked. The issue is specifically the spectator-v5 active-game lookup outcome for this player/session.',
+      },
+      {
+        title: 'Use DESKTOP_CLIENT for the real live-sync path',
+        description:
+          'DESKTOP_CLIENT remains the real local-client path for live draft sync. Riot mode is still useful for recognition and live-game analysis only.',
+      },
+      {
+        title: 'Capture this outcome for regression coverage',
+        description:
+          'Record the forbidden/unavailable response shape so the app can keep classifying this Riot outcome cleanly in tests and diagnostics.',
       },
     )
 
@@ -308,7 +340,7 @@ export function LiveSessionPanel({
       ]
     : ['Start a DESKTOP_CLIENT session first to get a session id.']
   const liveStatusIndicator = getLiveStatusIndicator(session, syncMode)
-  const riotTroubleshootingItems = getRiotTroubleshootingItems()
+  const riotTroubleshootingItems = getRiotTroubleshootingItems(session)
   const snapshotDebugSource = session.snapshotDebug?.source ?? (syncMode === 'MANUAL' ? undefined : syncMode)
   const snapshotMappedLabel =
     session.snapshotDebug?.snapshotMapped === true
@@ -330,16 +362,8 @@ export function LiveSessionPanel({
           step: session.riotLookupDebug.summonerLookupByPuuid,
         },
         {
-          label: 'Fallback summoner lookup by account id',
-          step: session.riotLookupDebug.summonerLookupByAccountFallback,
-        },
-        {
-          label: 'Fallback summoner lookup by name',
-          step: session.riotLookupDebug.summonerLookupByNameFallback,
-        },
-        {
-          label: 'Encrypted summoner id',
-          step: session.riotLookupDebug.encryptedSummonerId,
+          label: 'Spectator-v5 PUUID path',
+          step: session.riotLookupDebug.spectatorLookupPath,
         },
         {
           label: 'Active game lookup',

@@ -1,0 +1,3865 @@
+
+  <ul id="resources" style="margin-left:0;">
+    <li id="resource_1424" class="resource active" api-name="league-v4">
+
+      <!-- HEADING -->
+      <div class="heading">
+
+        
+
+        
+
+        <h2><a href="#league-v4"><span style="font-size:18px;">league-v4</span></a></h2>
+        <!-- Menu -->
+        <ul class="options">
+          <li><a href="#" onclick="Docs.collapseOperationsForResource('1424'); return false;">Collapse Operations</a></li>
+          <li><a href="#" onclick="Docs.expandOperationsForResource('1424'); return false;">Expand Operations</a></li>
+        </ul>
+      </div>
+      <ul class="endpoints" id="1424_endpoint_list" style="overflow: hidden;">
+        <li class="endpoint">
+          <ul class="operations" style="width:100%; margin:0px; padding:0px;">
+            
+
+
+    <li class="get operation" id="_getChallengerLeague" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#league-v4/GET_getChallengerLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getChallengerLeague');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#league-v4/GET_getChallengerLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getChallengerLeague');">/lol/league/v4/challengerleagues/by-queue/{queue}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#league-v4/GET_getChallengerLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getChallengerLeague');">Get the challenger league for given queue.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="league-v4_GET_getChallengerLeague_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#league-v4/GET_getChallengerLeague" onclick="Docs.jumpToResource('div#execute_inputs_league-v4_GET_getChallengerLeague')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: LeagueListDTO </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1424-getChallengerLeague-LeagueListDTO" style="display: inline;">LeagueListDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>leagueId</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>entries</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1424-getChallengerLeague-LeagueItemDTO')">LeagueItemDTO</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>tier</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>name</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>queue</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getChallengerLeague-LeagueItemDTO" style="display: inline;">LeagueItemDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>freshBlood</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Winning team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>miniSeries</td>
+             <td>
+               
+                 <a style="cursor: pointer" onclick="goToDefinition('1424-getChallengerLeague-MiniSeriesDTO')">MiniSeriesDTO</a>
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>inactive</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>veteran</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>hotStreak</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>rank</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>leaguePoints</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Losing team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Player&#x27;s encrypted puuid.
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getChallengerLeague-MiniSeriesDTO" style="display: inline;">MiniSeriesDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>progress</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>target</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_league-v4_GET_getChallengerLeague">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="league-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="league-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getChallengerLeague">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             queue
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <select name="queue" class="form-control"
+                 >
+
+                
+                    <option></option>
+                
+
+                
+                  
+                    <option>RANKED_SOLO_5x5</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_SR</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_TT</option>
+                  
+                
+
+              </select>
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_league-v4_GET_getChallengerLeague">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_league-v4_GET_getChallengerLeague" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('league-v4_GET_getChallengerLeague');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getChallengerLeague" class="response">
+
+    <div id="response_url_league-v4_GET_getChallengerLeague_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_league-v4_GET_getChallengerLeague" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_league-v4_GET_getChallengerLeague_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_league-v4_GET_getChallengerLeague" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_league-v4_GET_getChallengerLeague_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_league-v4_GET_getChallengerLeague" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_league-v4_GET_getChallengerLeague_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_league-v4_GET_getChallengerLeague" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_league-v4_GET_getChallengerLeague_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_league-v4_GET_getChallengerLeague" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_league-v4_GET_getChallengerLeague_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_league-v4_GET_getChallengerLeague" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+    <li class="get operation" id="_getLeagueEntriesByPUUID" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#league-v4/GET_getLeagueEntriesByPUUID" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntriesByPUUID');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#league-v4/GET_getLeagueEntriesByPUUID" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntriesByPUUID');">/lol/league/v4/entries/by-puuid/{encryptedPUUID}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#league-v4/GET_getLeagueEntriesByPUUID" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntriesByPUUID');">Get league entries in all queues for a given puuid</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="league-v4_GET_getLeagueEntriesByPUUID_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#league-v4/GET_getLeagueEntriesByPUUID" onclick="Docs.jumpToResource('div#execute_inputs_league-v4_GET_getLeagueEntriesByPUUID')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: Set[LeagueEntryDTO] </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueEntriesByPUUID-LeagueEntryDTO" style="display: inline;">LeagueEntryDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>leagueId</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Player&#x27;s encrypted puuid.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>queueType</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>tier</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>rank</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>The player&#x27;s division within a tier.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>leaguePoints</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Winning team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Losing team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>hotStreak</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>veteran</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>freshBlood</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>inactive</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>miniSeries</td>
+             <td>
+               
+                 <a style="cursor: pointer" onclick="goToDefinition('1424-getLeagueEntriesByPUUID-MiniSeriesDTO')">MiniSeriesDTO</a>
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueEntriesByPUUID-MiniSeriesDTO" style="display: inline;">MiniSeriesDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>progress</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>target</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_league-v4_GET_getLeagueEntriesByPUUID">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="league-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="league-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getLeagueEntriesByPUUID">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             encryptedPUUID
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <input name="encryptedPUUID" class="form-control" minlength="1" type="text" value="">
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_league-v4_GET_getLeagueEntriesByPUUID">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_league-v4_GET_getLeagueEntriesByPUUID" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntriesByPUUID');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getLeagueEntriesByPUUID" class="response">
+
+    <div id="response_url_league-v4_GET_getLeagueEntriesByPUUID_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_league-v4_GET_getLeagueEntriesByPUUID" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_league-v4_GET_getLeagueEntriesByPUUID_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_league-v4_GET_getLeagueEntriesByPUUID" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_league-v4_GET_getLeagueEntriesByPUUID_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_league-v4_GET_getLeagueEntriesByPUUID" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_league-v4_GET_getLeagueEntriesByPUUID_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_league-v4_GET_getLeagueEntriesByPUUID" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_league-v4_GET_getLeagueEntriesByPUUID_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_league-v4_GET_getLeagueEntriesByPUUID" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_league-v4_GET_getLeagueEntriesByPUUID_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_league-v4_GET_getLeagueEntriesByPUUID" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+    <li class="get operation" id="_getLeagueEntries" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#league-v4/GET_getLeagueEntries" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntries');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#league-v4/GET_getLeagueEntries" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntries');">/lol/league/v4/entries/{queue}/{tier}/{division}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#league-v4/GET_getLeagueEntries" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntries');">Get all the league entries.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="league-v4_GET_getLeagueEntries_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#league-v4/GET_getLeagueEntries" onclick="Docs.jumpToResource('div#execute_inputs_league-v4_GET_getLeagueEntries')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: Set[LeagueEntryDTO] </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueEntries-LeagueEntryDTO" style="display: inline;">LeagueEntryDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>leagueId</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Player&#x27;s encrypted puuid.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>queueType</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>tier</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>rank</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>The player&#x27;s division within a tier.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>leaguePoints</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Winning team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Losing team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>hotStreak</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>veteran</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>freshBlood</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>inactive</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>miniSeries</td>
+             <td>
+               
+                 <a style="cursor: pointer" onclick="goToDefinition('1424-getLeagueEntries-MiniSeriesDTO')">MiniSeriesDTO</a>
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueEntries-MiniSeriesDTO" style="display: inline;">MiniSeriesDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>progress</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>target</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_league-v4_GET_getLeagueEntries">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="league-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="league-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getLeagueEntries">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+    
+      
+        <tr>
+          <td class="code">
+             division
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <select name="division" class="form-control"
+                 >
+
+                
+                    <option></option>
+                
+
+                
+                  
+                    <option>I</option>
+                  
+                
+                  
+                    <option>II</option>
+                  
+                
+                  
+                    <option>III</option>
+                  
+                
+                  
+                    <option>IV</option>
+                  
+                
+
+              </select>
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      
+    
+      
+        <tr>
+          <td class="code">
+             tier
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <select name="tier" class="form-control"
+                 >
+
+                
+                    <option></option>
+                
+
+                
+                  
+                    <option>DIAMOND</option>
+                  
+                
+                  
+                    <option>EMERALD</option>
+                  
+                
+                  
+                    <option>PLATINUM</option>
+                  
+                
+                  
+                    <option>GOLD</option>
+                  
+                
+                  
+                    <option>SILVER</option>
+                  
+                
+                  
+                    <option>BRONZE</option>
+                  
+                
+                  
+                    <option>IRON</option>
+                  
+                
+
+              </select>
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      
+    
+      
+        <tr>
+          <td class="code">
+             queue
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <select name="queue" class="form-control"
+                 >
+
+                
+                    <option></option>
+                
+
+                
+                  
+                    <option>RANKED_SOLO_5x5</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_SR</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_TT</option>
+                  
+                
+
+              </select>
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td>Note that the queue value must be a valid ranked queue.</td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+          <!-- QUERY PARAMS -->
+          <div class="api_block">
+  <h4>Query Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             page
+             <div class="required"> optional </div>
+          </td>
+
+          <td>
+            
+              <input name="page" class="form-control" minlength="1" type="text" value="1">
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              int
+            
+            </span>
+          </td>
+          <td>Defaults to 1. Starts with page 1.</td>
+        </tr>
+      
+    
+      
+    
+      
+    
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_league-v4_GET_getLeagueEntries">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_league-v4_GET_getLeagueEntries" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueEntries');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getLeagueEntries" class="response">
+
+    <div id="response_url_league-v4_GET_getLeagueEntries_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_league-v4_GET_getLeagueEntries" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_league-v4_GET_getLeagueEntries_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_league-v4_GET_getLeagueEntries" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_league-v4_GET_getLeagueEntries_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_league-v4_GET_getLeagueEntries" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_league-v4_GET_getLeagueEntries_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_league-v4_GET_getLeagueEntries" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_league-v4_GET_getLeagueEntries_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_league-v4_GET_getLeagueEntries" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_league-v4_GET_getLeagueEntries_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_league-v4_GET_getLeagueEntries" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+    <li class="get operation" id="_getGrandmasterLeague" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#league-v4/GET_getGrandmasterLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getGrandmasterLeague');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#league-v4/GET_getGrandmasterLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getGrandmasterLeague');">/lol/league/v4/grandmasterleagues/by-queue/{queue}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#league-v4/GET_getGrandmasterLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getGrandmasterLeague');">Get the grandmaster league of a specific queue.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="league-v4_GET_getGrandmasterLeague_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#league-v4/GET_getGrandmasterLeague" onclick="Docs.jumpToResource('div#execute_inputs_league-v4_GET_getGrandmasterLeague')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: LeagueListDTO </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1424-getGrandmasterLeague-LeagueListDTO" style="display: inline;">LeagueListDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>leagueId</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>entries</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1424-getGrandmasterLeague-LeagueItemDTO')">LeagueItemDTO</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>tier</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>name</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>queue</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getGrandmasterLeague-LeagueItemDTO" style="display: inline;">LeagueItemDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>freshBlood</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Winning team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>miniSeries</td>
+             <td>
+               
+                 <a style="cursor: pointer" onclick="goToDefinition('1424-getGrandmasterLeague-MiniSeriesDTO')">MiniSeriesDTO</a>
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>inactive</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>veteran</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>hotStreak</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>rank</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>leaguePoints</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Losing team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Player&#x27;s encrypted puuid.
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getGrandmasterLeague-MiniSeriesDTO" style="display: inline;">MiniSeriesDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>progress</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>target</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_league-v4_GET_getGrandmasterLeague">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="league-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="league-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getGrandmasterLeague">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             queue
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <select name="queue" class="form-control"
+                 >
+
+                
+                    <option></option>
+                
+
+                
+                  
+                    <option>RANKED_SOLO_5x5</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_SR</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_TT</option>
+                  
+                
+
+              </select>
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_league-v4_GET_getGrandmasterLeague">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_league-v4_GET_getGrandmasterLeague" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('league-v4_GET_getGrandmasterLeague');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getGrandmasterLeague" class="response">
+
+    <div id="response_url_league-v4_GET_getGrandmasterLeague_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_league-v4_GET_getGrandmasterLeague" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_league-v4_GET_getGrandmasterLeague_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_league-v4_GET_getGrandmasterLeague" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_league-v4_GET_getGrandmasterLeague_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_league-v4_GET_getGrandmasterLeague" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_league-v4_GET_getGrandmasterLeague_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_league-v4_GET_getGrandmasterLeague" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_league-v4_GET_getGrandmasterLeague_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_league-v4_GET_getGrandmasterLeague" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_league-v4_GET_getGrandmasterLeague_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_league-v4_GET_getGrandmasterLeague" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+    <li class="get operation" id="_getLeagueById" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#league-v4/GET_getLeagueById" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueById');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#league-v4/GET_getLeagueById" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueById');">/lol/league/v4/leagues/{leagueId}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#league-v4/GET_getLeagueById" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueById');">Get league with given ID, including inactive entries.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="league-v4_GET_getLeagueById_content" style="overflow: hidden; display: none;">
+  
+
+  
+    <div class="method_meta">
+      <h4 style="color:#dc291e; margin-top:10px; text-transform: none;">Consistently looking up league ids that don't exist will result in a blacklist.</h4>
+      <hr style="margin-top:10px; margin-bottom: 10px"/>
+    </div>
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#league-v4/GET_getLeagueById" onclick="Docs.jumpToResource('div#execute_inputs_league-v4_GET_getLeagueById')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: LeagueListDTO </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueById-LeagueListDTO" style="display: inline;">LeagueListDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>leagueId</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>entries</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1424-getLeagueById-LeagueItemDTO')">LeagueItemDTO</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>tier</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>name</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>queue</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueById-LeagueItemDTO" style="display: inline;">LeagueItemDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>freshBlood</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Winning team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>miniSeries</td>
+             <td>
+               
+                 <a style="cursor: pointer" onclick="goToDefinition('1424-getLeagueById-MiniSeriesDTO')">MiniSeriesDTO</a>
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>inactive</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>veteran</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>hotStreak</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>rank</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>leaguePoints</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Losing team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Player&#x27;s encrypted puuid.
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getLeagueById-MiniSeriesDTO" style="display: inline;">MiniSeriesDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>progress</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>target</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_league-v4_GET_getLeagueById">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="league-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="league-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getLeagueById">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             leagueId
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <input name="leagueId" class="form-control" minlength="1" type="text" value="">
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td>The UUID of the league.</td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_league-v4_GET_getLeagueById">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_league-v4_GET_getLeagueById" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('league-v4_GET_getLeagueById');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getLeagueById" class="response">
+
+    <div id="response_url_league-v4_GET_getLeagueById_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_league-v4_GET_getLeagueById" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_league-v4_GET_getLeagueById_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_league-v4_GET_getLeagueById" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_league-v4_GET_getLeagueById_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_league-v4_GET_getLeagueById" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_league-v4_GET_getLeagueById_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_league-v4_GET_getLeagueById" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_league-v4_GET_getLeagueById_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_league-v4_GET_getLeagueById" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_league-v4_GET_getLeagueById_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_league-v4_GET_getLeagueById" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+    <li class="get operation" id="_getMasterLeague" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#league-v4/GET_getMasterLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getMasterLeague');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#league-v4/GET_getMasterLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getMasterLeague');">/lol/league/v4/masterleagues/by-queue/{queue}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#league-v4/GET_getMasterLeague" onclick="Docs.toggleOperationForResource('league-v4_GET_getMasterLeague');">Get the master league for given queue.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="league-v4_GET_getMasterLeague_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#league-v4/GET_getMasterLeague" onclick="Docs.jumpToResource('div#execute_inputs_league-v4_GET_getMasterLeague')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: LeagueListDTO </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1424-getMasterLeague-LeagueListDTO" style="display: inline;">LeagueListDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>leagueId</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>entries</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1424-getMasterLeague-LeagueItemDTO')">LeagueItemDTO</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>tier</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>name</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>queue</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getMasterLeague-LeagueItemDTO" style="display: inline;">LeagueItemDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>freshBlood</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Winning team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>miniSeries</td>
+             <td>
+               
+                 <a style="cursor: pointer" onclick="goToDefinition('1424-getMasterLeague-MiniSeriesDTO')">MiniSeriesDTO</a>
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>inactive</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>veteran</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>hotStreak</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>rank</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>leaguePoints</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>Losing team on Summoners Rift.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Player&#x27;s encrypted puuid.
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1424-getMasterLeague-MiniSeriesDTO" style="display: inline;">MiniSeriesDTO </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>losses</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>progress</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>target</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>wins</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_league-v4_GET_getMasterLeague">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="league-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="league-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getMasterLeague">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             queue
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <select name="queue" class="form-control"
+                 >
+
+                
+                    <option></option>
+                
+
+                
+                  
+                    <option>RANKED_SOLO_5x5</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_SR</option>
+                  
+                
+                  
+                    <option>RANKED_FLEX_TT</option>
+                  
+                
+
+              </select>
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td></td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_league-v4_GET_getMasterLeague">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_league-v4_GET_getMasterLeague" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('league-v4_GET_getMasterLeague');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getMasterLeague" class="response">
+
+    <div id="response_url_league-v4_GET_getMasterLeague_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_league-v4_GET_getMasterLeague" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_league-v4_GET_getMasterLeague_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_league-v4_GET_getMasterLeague" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_league-v4_GET_getMasterLeague_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_league-v4_GET_getMasterLeague" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_league-v4_GET_getMasterLeague_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_league-v4_GET_getMasterLeague" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_league-v4_GET_getMasterLeague_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_league-v4_GET_getMasterLeague" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_league-v4_GET_getMasterLeague_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_league-v4_GET_getMasterLeague" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+

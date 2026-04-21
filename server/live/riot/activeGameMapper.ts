@@ -67,7 +67,6 @@ function createChampionMetadataResolver(championCatalog: DesktopChampionCatalogE
 function isLocalParticipant(participant: RiotActiveGameParticipant, player: RiotRecognizedPlayer) {
   return (
     participant.puuid === player.account.puuid ||
-    participant.summonerId === player.summoner.id ||
     (participant.riotIdGameName === player.account.gameName && participant.riotIdTagline === player.account.tagLine) ||
     participant.summonerName === player.account.gameName
   )

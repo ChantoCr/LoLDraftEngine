@@ -15,22 +15,7 @@ interface CreateRiotBackendLiveDraftAdapterInput {
   clearIntervalFn?: typeof clearInterval
 }
 
-function containsForbiddenLookupDetail(details?: string) {
-  return Boolean(details && details.includes('403 Forbidden'))
-}
-
 function buildRiotActiveGameWarningSummary(recognizedPlayer: RiotRecognizedPlayer) {
-  const fallbackLookup = recognizedPlayer.lookupDebug.summonerLookupByNameFallback
-  const encryptedSummonerId = recognizedPlayer.lookupDebug.encryptedSummonerId
-
-  if (fallbackLookup.status === 'failed' && containsForbiddenLookupDetail(fallbackLookup.details)) {
-    return 'Riot recognized the player profile, but Riot blocked the fallback summoner-name spectator recovery step (403 Forbidden). Active-game detection was skipped.'
-  }
-
-  if (encryptedSummonerId.status === 'failed') {
-    return 'Riot recognized the player profile, but spectator lookup could not recover an encrypted summoner id. Active-game detection was skipped.'
-  }
-
   return recognizedPlayer.activeGameWarning
 }
 
@@ -136,6 +121,10 @@ async function buildRiotRecognitionResult(
       recognizedSession: {
         status: 'error',
         message: error instanceof Error ? error.message : 'Unable to recognize the Riot player.',
+        riotLookupDebug:
+          error && typeof error === 'object' && 'lookupDebug' in error
+            ? ((error as { lookupDebug?: RecognizedLiveSession['riotLookupDebug'] }).lookupDebug ?? undefined)
+            : undefined,
       },
     }
   }

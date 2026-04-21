@@ -1,0 +1,825 @@
+
+  <ul id="resources" style="margin-left:0;">
+    <li id="resource_1416" class="resource active" api-name="summoner-v4">
+
+      <!-- HEADING -->
+      <div class="heading">
+
+        
+
+        
+
+        <h2><a href="#summoner-v4"><span style="font-size:18px;">summoner-v4</span></a></h2>
+        <!-- Menu -->
+        <ul class="options">
+          <li><a href="#" onclick="Docs.collapseOperationsForResource('1416'); return false;">Collapse Operations</a></li>
+          <li><a href="#" onclick="Docs.expandOperationsForResource('1416'); return false;">Expand Operations</a></li>
+        </ul>
+      </div>
+      <ul class="endpoints" id="1416_endpoint_list" style="overflow: hidden;">
+        <li class="endpoint">
+          <ul class="operations" style="width:100%; margin:0px; padding:0px;">
+            
+
+
+    <li class="get operation" id="_getByPUUID" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#summoner-v4/GET_getByPUUID" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByPUUID');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#summoner-v4/GET_getByPUUID" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByPUUID');">/lol/summoner/v4/summoners/by-puuid/{encryptedPUUID}</a>
+            </span>
+            <ul class="options">
+               <li><a href="#summoner-v4/GET_getByPUUID" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByPUUID');">Get a summoner by PUUID.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="summoner-v4_GET_getByPUUID_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#summoner-v4/GET_getByPUUID" onclick="Docs.jumpToResource('div#execute_inputs_summoner-v4_GET_getByPUUID')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: SummonerDTO </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1416-getByPUUID-SummonerDTO" style="display: inline;">SummonerDTO </h5>
+  
+  - represents a summoner
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>profileIconId</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>ID of the summoner icon associated with the summoner.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>revisionDate</td>
+             <td>
+               
+                 long
+               
+             </td>
+             <td>Date summoner was last modified specified as epoch milliseconds. The following events will update this timestamp: profile icon change, playing the tutorial or advanced tutorial, finishing a game, summoner name change.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Encrypted PUUID. Exact length of 78 characters.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>summonerLevel</td>
+             <td>
+               
+                 long
+               
+             </td>
+             <td>Summoner level associated with the summoner.
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_summoner-v4_GET_getByPUUID">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="summoner-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="summoner-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getByPUUID">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Path Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             encryptedPUUID
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <input name="encryptedPUUID" class="form-control" minlength="1" type="text" value="">
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td>Summoner ID</td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_summoner-v4_GET_getByPUUID">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_summoner-v4_GET_getByPUUID" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByPUUID');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getByPUUID" class="response">
+
+    <div id="response_url_summoner-v4_GET_getByPUUID_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_summoner-v4_GET_getByPUUID" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_summoner-v4_GET_getByPUUID_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_summoner-v4_GET_getByPUUID" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_summoner-v4_GET_getByPUUID_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_summoner-v4_GET_getByPUUID" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_summoner-v4_GET_getByPUUID_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_summoner-v4_GET_getByPUUID" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_summoner-v4_GET_getByPUUID_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_summoner-v4_GET_getByPUUID" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_summoner-v4_GET_getByPUUID_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_summoner-v4_GET_getByPUUID" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+    <li class="get operation" id="_getByAccessToken" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#summoner-v4/GET_getByAccessToken" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByAccessToken');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#summoner-v4/GET_getByAccessToken" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByAccessToken');">/lol/summoner/v4/summoners/me</a>
+            </span>
+            <ul class="options">
+               <li><a href="#summoner-v4/GET_getByAccessToken" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByAccessToken');">Get a summoner by access token.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="summoner-v4_GET_getByAccessToken_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#summoner-v4/GET_getByAccessToken" onclick="Docs.jumpToResource('div#execute_inputs_summoner-v4_GET_getByAccessToken')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: SummonerDTO </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1416-getByAccessToken-SummonerDTO" style="display: inline;">SummonerDTO </h5>
+  
+  - represents a summoner
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>profileIconId</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>ID of the summoner icon associated with the summoner.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>revisionDate</td>
+             <td>
+               
+                 long
+               
+             </td>
+             <td>Date summoner was last modified specified as epoch milliseconds. The following events will update this timestamp: profile icon change, playing the tutorial or advanced tutorial, finishing a game, summoner name change.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>puuid</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>Encrypted PUUID. Exact length of 78 characters.
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>summonerLevel</td>
+             <td>
+               
+                 long
+               
+             </td>
+             <td>Summoner level associated with the summoner.
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_summoner-v4_GET_getByAccessToken">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="summoner-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="summoner-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getByAccessToken">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+          <!-- PATH PARAMS -->
+          <div class="api_block">
+  <h4>Header Parameters</h4>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th style="min-width:220px;">Value</th>
+        <th style="min-width:120px;">Data Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+
+    <tbody class="operation-params">
+    
+      
+        <tr>
+          <td class="code">
+             Authorization
+             <div class="required"> required </div>
+          </td>
+
+          <td>
+            
+              <input name="Authorization" class="form-control" minlength="1" type="text" value="">
+            
+          </td>
+
+          <td>
+            <span class="model-signature">
+            
+              string
+            
+            </span>
+          </td>
+          <td>Bearer token</td>
+        </tr>
+      
+    
+    </tbody>
+  </table>
+</div>
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_summoner-v4_GET_getByAccessToken">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='TW2'>TW2</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_summoner-v4_GET_getByAccessToken" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('summoner-v4_GET_getByAccessToken');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getByAccessToken" class="response">
+
+    <div id="response_url_summoner-v4_GET_getByAccessToken_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_summoner-v4_GET_getByAccessToken" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_summoner-v4_GET_getByAccessToken_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_summoner-v4_GET_getByAccessToken" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_summoner-v4_GET_getByAccessToken_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_summoner-v4_GET_getByAccessToken" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_summoner-v4_GET_getByAccessToken_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_summoner-v4_GET_getByAccessToken" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_summoner-v4_GET_getByAccessToken_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_summoner-v4_GET_getByAccessToken" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_summoner-v4_GET_getByAccessToken_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_summoner-v4_GET_getByAccessToken" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+

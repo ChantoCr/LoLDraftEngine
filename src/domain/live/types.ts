@@ -29,7 +29,7 @@ export interface SummonerIdentity {
 export type LiveDraftSyncMode = 'MANUAL' | 'MOCK' | 'RIOT_API' | 'DESKTOP_CLIENT'
 export type LiveDraftConnectionStatus = 'idle' | 'manual' | 'connecting' | 'connected' | 'error'
 export type LiveSnapshotSource = Exclude<LiveDraftSyncMode, 'MANUAL'>
-export type RiotLookupStepStatus = 'success' | 'failed' | 'skipped' | 'not-found' | 'not-needed'
+export type RiotLookupStepStatus = 'success' | 'failed' | 'skipped' | 'not-found' | 'not-needed' | 'forbidden' | 'unavailable'
 
 export interface LiveSnapshotDebugInfo {
   source: LiveSnapshotSource
@@ -47,9 +47,7 @@ export interface RiotLookupDebugInfo {
   source: 'RIOT_API'
   accountLookup: RiotLookupStepDebugInfo
   summonerLookupByPuuid: RiotLookupStepDebugInfo
-  summonerLookupByAccountFallback: RiotLookupStepDebugInfo
-  summonerLookupByNameFallback: RiotLookupStepDebugInfo
-  encryptedSummonerId: RiotLookupStepDebugInfo
+  spectatorLookupPath: RiotLookupStepDebugInfo
   activeGameLookup: RiotLookupStepDebugInfo
 }
 

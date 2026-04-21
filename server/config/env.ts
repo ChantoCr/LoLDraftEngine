@@ -8,14 +8,19 @@ export interface ServerConfig {
   desktopCompanionToken?: string
 }
 
+function normalizeOptionalEnvValue(value: string | undefined) {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : undefined
+}
+
 export function getServerConfig(): ServerConfig {
   loadProjectEnv()
 
   return {
     port: Number(process.env.PORT ?? 3001),
     corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-    riotApiKey: process.env.RIOT_API_KEY,
-    externalStatsUrl: process.env.EXTERNAL_STATS_URL,
-    desktopCompanionToken: process.env.DESKTOP_COMPANION_TOKEN,
+    riotApiKey: normalizeOptionalEnvValue(process.env.RIOT_API_KEY),
+    externalStatsUrl: normalizeOptionalEnvValue(process.env.EXTERNAL_STATS_URL),
+    desktopCompanionToken: normalizeOptionalEnvValue(process.env.DESKTOP_COMPANION_TOKEN),
   }
 }

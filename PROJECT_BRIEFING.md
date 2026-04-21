@@ -433,9 +433,10 @@ Implemented real region-aware Riot API scaffolding.
 
 ### Current capabilities
 - region-aware routing logic
-- account lookup by Riot ID scaffold
-- summoner lookup by PUUID scaffold
-- active game lookup scaffold
+- account lookup by Riot ID
+- summoner profile metadata lookup by PUUID
+- spectator-v5 active game lookup by **PUUID**
+- step-by-step Riot lookup diagnostics, pipeline summary, and recommended next-step guidance in the UI
 - useful backend error messaging if API key is missing
 - clearer frontend error propagation for recognize failures
 
@@ -449,6 +450,14 @@ The backend loads `.env` and `.env.local`.
 ### Current limitation
 Riot public APIs still do not provide true champion-select streaming.
 This path is useful for player recognition and active-game detection, but not enough for full draft sync.
+
+### Important implementation correction from the official Riot docs
+Recent validation against the official Riot docs showed that:
+- `summoner-v4` by PUUID should not be treated as the source of legacy encrypted summoner ids / account ids / legacy summoner names
+- `spectator-v5` active-game lookup should use the player's **PUUID directly**
+- Data Dragon is unrelated to this live lookup problem; DDragon only provides static patch/champion data
+
+The Riot live path was updated accordingly.
 
 ---
 
@@ -478,6 +487,7 @@ Implemented a backend-side desktop-client bridge contract plus local runtime sca
 - retry-aware runtime posting
 - file-based bridge-compatible source runtime
 - mock desktop companion runtime
+- desktop debug visibility for last heartbeat / companion id / ingest event id / ingest sequence / lightweight timeline
 
 ### What this means
 A future local bridge/companion process can:
@@ -625,8 +635,8 @@ As of the end of this chat, the project passes:
 - tests
 
 Current tested state:
-- **38 test files**
-- **78 tests passing**
+- **39 test files**
+- **83 tests passing**
 
 ---
 
@@ -635,17 +645,17 @@ Current tested state:
 ### 1. Riot public APIs still do not provide true champ-select draft streaming
 `RIOT_API` can now be useful for player recognition and live-game roster snapshots when spectator data is available, but it still cannot provide true draft pick/ban streaming.
 
-### 2. Riot live-game roster mapping still needs hardening
+### 2. Riot live-game validation still needs real-world confirmation
+The major outdated fallback assumption was corrected by switching spectator-v5 live lookup to the player's **PUUID** directly.
 Still needed:
-- better role inference from Riot active-game participants
-- clearer spectator-unavailable messaging
-- better debug visibility for why a live roster did or did not map into the board
-- broader real-world active-game payload validation
+- real-world validation of the corrected PUUID path in live games
+- recorded fixture coverage for success / not-found / forbidden outcomes
+- follow-up adjustments if Riot spectator-v5 returns additional edge cases in production use
 
 ### 3. Desktop-client live sync is strong but can still be hardened further
-The local-client path is now much stronger, but future improvements still include:
+The local-client path is now much stronger, and desktop debug/timeline visibility now exists, but future improvements still include:
 - more real-world client fixture validation
-- richer debug visibility and event tracing
+- optional event counters / deeper timeline ergonomics
 - optional deeper process discovery/runtime ergonomics
 
 ### 4. All-champion trait fidelity is still approximate for many champions
@@ -665,17 +675,17 @@ The external stats adapter is ready, but a real production provider still needs 
 ## Recommended Next Steps After This Chat
 
 ### Highest-value next steps
-1. Harden **RIOT_API live-game roster snapshots**.
+1. Validate the corrected **RIOT_API spectator-v5 PUUID lookup** against real live games and capture fixtures.
 2. Expand the deterministic **Live Game Plan / AI Coach** layer.
 3. Add **persistent curated champion trait JSON datasets** with patch-aware overrides.
 4. Connect a **real external stats provider** behind `EXTERNAL_STATS_URL`.
-5. Add better live/debug visibility for Riot and Desktop Client events.
+5. Add only small additional live/debug UX polish if it directly helps validation.
 
 ### Best immediate next technical task
 Start with:
-- verifying why the current `RIOT_API` live session is or is not producing a mapped roster snapshot on the board
-- improving role inference and snapshot visibility for Riot live-game mapping
-- expanding the deterministic game-plan outputs for populated live boards
+- verifying the corrected `RIOT_API` spectator-v5 **PUUID-based** live lookup against a real live game
+- recording whether the result is success / not-found / forbidden
+- then expanding deterministic game-plan outputs for populated live boards
 
 That path keeps the project aligned with the real product need:
 - `DESKTOP_CLIENT` for true live draft sync
@@ -695,6 +705,7 @@ If a future assistant needs the shortest accurate context:
 - It supports MANUAL, MOCK, RIOT_API, and DESKTOP_CLIENT live modes.
 - Riot region routing is scaffolded, including LAN via americas/la1.
 - `DESKTOP_CLIENT` is now the real local-client live sync path and already has mock, file, and LCU runners.
-- `RIOT_API` is now useful for player recognition and live-game roster snapshots when spectator APIs expose the current game, but Riot public APIs are still not enough for true live champ-select sync.
+- `RIOT_API` is now useful for player recognition and live-game roster snapshots when spectator APIs expose the current game, and the current implementation now uses spectator-v5 with the player's **PUUID directly** per the official Riot docs.
 - A deterministic live game-plan layer now exists and feeds a richer AI coach panel.
-- The next best step is to harden Riot live-game roster mapping and expand deterministic live coaching.
+- Desktop-client debug/timeline visibility now exists and `DESKTOP_CLIENT` remains the real live-sync path.
+- The next best step is to validate the corrected Riot live lookup in real games and then expand deterministic live coaching.

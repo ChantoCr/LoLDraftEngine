@@ -1,0 +1,660 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Riot Developer Portal</title>
+  <link rel="icon" href="https://static.developer.riotgames.com/img/favicon.png" type="image/ico" />
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width" />
+  <link rel="stylesheet" type="text/css" href="https://s.lolstatic.com/awesomefonts/1.0.0/lol-fonts.css">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/js/remark/css/bootstrap.min-v2.2.0.5c11657f7924.css">
+  <link rel="stylesheet" href="/static/js/remark/css/bootstrap-extend.min-v2.2.0.3219f69d7c80.css">
+  <link rel="stylesheet" href="/static/css/site.min-v2.2.0.53b31d7907ef.css">
+  <link rel="stylesheet" href="/static/js/chosen_v1.6.2/chosen.min.91f869a82435.css">
+
+  <!-- Plugins -->
+  <!-- <link rel="stylesheet" href="/static/js/remark/vendor/animsition/animsition.min-v2.2.0.5273774fb4fb.css">
+  <link rel="stylesheet" href="/static/js/remark/vendor/asscrollable/asScrollable.min-v2.2.0.a52f6c3cc79b.css"> -->
+
+  <!-- Plugins For This Page -->
+  <!-- <link rel="stylesheet" href="/static/js/remark/vendor/bootstrap-tokenfield/bootstrap-tokenfield.min-v2.2.0.b9d1aa22fb12.css"> -->
+
+  <!-- Page -->
+  <!-- <link rel="stylesheet" href="/static/examples/css/dashboard/v1.min-v2.2.0.9b9a255021da.css"> -->
+
+  <!-- Fonts -->
+  <!-- <link rel="stylesheet" href="/static/js/remark/fonts/web-icons/web-icons.min-v2.2.0.6f977de1a08f.css"> -->
+  
+  <link href="/static/css/main.811502539640.css" rel="stylesheet" type="text/css" />
+
+    <!-- Scripts -->
+  <script src="https://cmp.osano.com/16BZ95S4qp9Kl2gUA/c84de61e-21d7-4a4a-9591-3d3a28fb5b1d/osano.js"></script>
+  <script src="/static/js/clipboard.3e5e0fa949e0.js"></script>
+  <script src="/static/js/remark/vendor/jquery/jquery.min.c07f2267a050.js"></script>
+  <script src="/static/js/chosen_v1.6.2/chosen.jquery.min.63fec16cd0e7.js"></script>
+  <script src="/static/js/remark/vendor/modernizr/modernizr.min.1258d3cdc715.js"></script>
+  <script src="/static/js/google_chart.924e855efca7.js"></script>
+  <script src="/static/js/RiotGraphs.8778fb9c067b.js"></script>
+  <script src="/static/js/lib/vue.min.e92b692efff8.js"></script>
+  <script src="/static/js/lib/vue.resource.min.dd2bcbc0405a.js"></script>
+  <script src="/static/js/vue_components/component.graph.b55099af41c1.js"></script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P6MFXZQDPE"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'G-P6MFXZQDPE');
+  </script>
+  <script type="text/javascript">
+      (function(t,l){
+          let w=window,d=document,s=d.createElement("script"),f=d.getElementsByTagName("script")[0];
+          w[t]=w[t]||function(){(w["_rgea"]=w["_rgea"]||[["uts",new Date()]]).push(Array.prototype.slice.call(arguments));w.RGEA&&w.RGEA.p();}
+          s.type="text/javascript"; s.async=true; s.defer=true; s.src=l; f.parentNode.insertBefore(s,f);
+      })("rgea", "https://static.developer.riotgames.com/js/rgea.min.js");
+
+      rgea("propertyId", "RGEA0001-086f1365-1c20-4f66-8ea6-7f01a5a9479d");
+      rgea("anonymous", false);
+  </script>
+
+
+</head>
+
+<body class="riot-player">
+
+
+<nav class="site-navbar navbar navbar-default navbar-fixed-top navbar-mega" role="navigation">
+    <div class="wrapper">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle hamburger hamburger-close navbar-toggle-left hided"
+            data-toggle="menubar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="hamburger-bar"></span>
+            </button>
+            <button type="button" class="navbar-toggle collapsed" data-target="#site-navbar-collapse"
+            data-toggle="collapse">
+                <i class="icon wb-more-horizontal" style="color:black;" aria-hidden="true"></i>
+            </button>
+            <a href="/">
+                <div class="navbar-brand navbar-brand-center site-gridmenu-toggle" data-toggle="gridmenu">
+                <span class="riot-logo"></span>
+                <span class="navbar-brand-text hidden-xs"> Developer</span>
+                </div>
+            </a>
+        </div>
+        <div class="navbar-container container-fluid">
+            <!-- Navbar Collapse -->
+            <div class="collapse navbar-collapse navbar-collapse-toolbar" id="site-navbar-collapse">
+                <!-- Navbar Toolbar -->
+                <ul class="nav navbar-nav navbar-center">
+                    
+                    <li class="dropdown navbar-center-inline-block hover-dropdown">
+                        <a  href="/apis"   aria-expanded="false"
+                        data-animation="scale-up" role="button">APIs</a>
+                        <ul class="dropdown-menu position-absolute" role="menu">
+                        
+                        </ul>
+                    </li>
+                    
+                    <li class="dropdown navbar-center-inline-block hover-dropdown">
+                        <a   aria-expanded="false"
+                        data-animation="scale-up" role="button">Docs</a>
+                        <ul class="dropdown-menu position-absolute" role="menu">
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/portal"  role="menuitem">Developer Portal</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/lol"  role="menuitem">League of Legends</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/lor"  role="menuitem">Legends of Runeterra</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/tft"  role="menuitem">Teamfight Tactics</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/valorant"  role="menuitem">Valorant</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/riftbound"  role="menuitem">Riftbound</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/docs/2xko"  role="menuitem">2KXO</a>
+                            </li>
+                            
+                        
+                        </ul>
+                    </li>
+                    
+                    <li class="dropdown navbar-center-inline-block hover-dropdown">
+                        <a   aria-expanded="false"
+                        data-animation="scale-up" role="button">Policies</a>
+                        <ul class="dropdown-menu position-absolute" role="menu">
+                        
+                            
+                            <li role="presentation">
+                                <a href="/policies/general"  role="menuitem">General</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/policies/game-specific"  role="menuitem">Game Specific</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="/policies/riftbound"  role="menuitem">Riftbound</a>
+                            </li>
+                            
+                        
+                        </ul>
+                    </li>
+                    
+                    <li class="dropdown navbar-center-inline-block hover-dropdown">
+                        <a  href="/docs/faqs"   aria-expanded="false"
+                        data-animation="scale-up" role="button">Faqs</a>
+                        <ul class="dropdown-menu position-absolute" role="menu">
+                        
+                        </ul>
+                    </li>
+                    
+                    <li class="dropdown navbar-center-inline-block hover-dropdown">
+                        <a   aria-expanded="false"
+                        data-animation="scale-up" role="button">Channels</a>
+                        <ul class="dropdown-menu position-absolute" role="menu">
+                        
+                            
+                            <li role="presentation">
+                                <a href="https://www.riotgames.com/en/DevRel"  target="_blank"  role="menuitem">Blog</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="https://twitter.com/RiotGamesDevRel"  target="_blank"  role="menuitem">Twitter</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="https://discord.gg/riotgamesdevrel"  target="_blank"  role="menuitem">Discord</a>
+                            </li>
+                            
+                        
+                            
+                            <li role="presentation">
+                                <a href="https://github.com/RiotGames/developer-relations/issues"  target="_blank"  role="menuitem">Issue Tracker</a>
+                            </li>
+                            
+                        
+                        </ul>
+                    </li>
+                    
+                    <li class="dropdown navbar-center-inline-block hover-dropdown">
+                        <a  href="https://support-developer.riotgames.com"  target="_blank" style="color: red;" aria-expanded="false"
+                        data-animation="scale-up" role="button">Support</a>
+                        <ul class="dropdown-menu position-absolute" role="menu">
+                        
+                        </ul>
+                    </li>
+                    
+                    
+                </ul>
+                <!-- Navbar Toolbar Right -->
+                
+                <!-- not logged in -->
+                <ul class="nav navbar-toolbar navbar-right navbar-toolbar-right">
+                    <li>
+                        <a class="navbar-avatar" href="/login" role="button">
+                           <h3 class="admin-title">Login</h3>
+                        </a>
+                    </li>
+                </ul>
+                
+            </div>
+            <!-- Site Navbar Seach -->
+            <div class="collapse navbar-search-overlap" id="site-navbar-search">
+          <form role="search">
+            <div class="form-group">
+              <div class="input-search">
+                <i class="input-search-icon wb-search" aria-hidden="true"></i>
+                <input type="text" class="form-control" name="site-search" placeholder="Search...">
+                <button type="button" class="input-search-close icon wb-close" data-target="#site-navbar-search"
+                data-toggle="collapse" aria-label="Close"></button>
+              </div>
+            </div>
+          </form>
+        </div>
+        </div>
+    </div>
+</nav>
+
+
+
+
+  <div class="page ">
+    <div class="page-content padding-30-main container-fluid">
+      
+
+
+
+
+
+<link href="/static/css/swagger.e962eac4377d.css" rel='stylesheet' type='text/css'/>
+<link href="/static/css/highlight.default.fabaade34a2b.css" rel='stylesheet' type ='text/css'/>
+
+
+  <script src="/static/js/api_reference_page.dc62e0a4d2b9.js" type='text/javascript'></script>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+
+<div class="site-menubar api-ref-sidebar">
+    <div class="nav-side site-menubar-body">
+        <div class="scrollable-container">
+            <ul class="app-nav-bar" id="side-bar">
+  
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#account-v1' class="api_option" api-name="account-v1">
+           account-v1
+           <span class="api_desc">Riftbound RSO</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#champion-mastery-v4' class="api_option" api-name="champion-mastery-v4">
+           champion-mastery-v4
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#champion-v3' class="api_option" api-name="champion-v3">
+           champion-v3
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#clash-v1' class="api_option" api-name="clash-v1">
+           clash-v1
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#league-exp-v4' class="api_option" api-name="league-exp-v4">
+           league-exp-v4
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#league-v4' class="api_option" api-name="league-v4">
+           league-v4
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lol-challenges-v1' class="api_option" api-name="lol-challenges-v1">
+           lol-challenges-v1
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lol-rso-match-v1' class="api_option" api-name="lol-rso-match-v1">
+           lol-rso-match-v1
+           <span class="api_desc">League of Legends RSO</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lol-status-v4' class="api_option" api-name="lol-status-v4">
+           lol-status-v4
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lor-deck-v1' class="api_option" api-name="lor-deck-v1">
+           lor-deck-v1
+           <span class="api_desc">Legends of Runeterra RSO</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lor-inventory-v1' class="api_option" api-name="lor-inventory-v1">
+           lor-inventory-v1
+           <span class="api_desc">Legends of Runeterra RSO</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lor-match-v1' class="api_option" api-name="lor-match-v1">
+           lor-match-v1
+           <span class="api_desc">Legends of Runeterra</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lor-ranked-v1' class="api_option" api-name="lor-ranked-v1">
+           lor-ranked-v1
+           <span class="api_desc">Legends of Runeterra</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#lor-status-v1' class="api_option" api-name="lor-status-v1">
+           lor-status-v1
+           <span class="api_desc">Legends of Runeterra</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#match-v5' class="api_option" api-name="match-v5">
+           match-v5
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#riftbound-content-v1' class="api_option" api-name="riftbound-content-v1">
+           riftbound-content-v1
+           <span class="api_desc">Riftbound</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#spectator-tft-v5' class="api_option" api-name="spectator-tft-v5">
+           spectator-tft-v5
+           <span class="api_desc">Teamfight Tactics</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#spectator-v5' class="api_option" api-name="spectator-v5">
+           spectator-v5
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#summoner-v4' class="api_option" api-name="summoner-v4">
+           summoner-v4
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#tft-league-v1' class="api_option" api-name="tft-league-v1">
+           tft-league-v1
+           <span class="api_desc">Teamfight Tactics</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#tft-match-v1' class="api_option" api-name="tft-match-v1">
+           tft-match-v1
+           <span class="api_desc">Teamfight Tactics</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#tft-status-v1' class="api_option" api-name="tft-status-v1">
+           tft-status-v1
+           <span class="api_desc">Teamfight Tactics</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#tft-summoner-v1' class="api_option" api-name="tft-summoner-v1">
+           tft-summoner-v1
+           <span class="api_desc">Teamfight Tactics RSO</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#tournament-stub-v5' class="api_option" api-name="tournament-stub-v5">
+           tournament-stub-v5
+           <span class="api_desc">League of Legends</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#tournament-v5' class="api_option" api-name="tournament-v5">
+           tournament-v5
+           <span class="api_desc">League of Legends Tournaments</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#val-console-match-v1' class="api_option" api-name="val-console-match-v1">
+           val-console-match-v1
+           <span class="api_desc">VALORANT</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#val-console-ranked-v1' class="api_option" api-name="val-console-ranked-v1">
+           val-console-ranked-v1
+           <span class="api_desc">VALORANT</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#val-content-v1' class="api_option" api-name="val-content-v1">
+           val-content-v1
+           <span class="api_desc">VALORANT</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#val-match-v1' class="api_option" api-name="val-match-v1">
+           val-match-v1
+           <span class="api_desc">VALORANT</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#val-ranked-v1' class="api_option" api-name="val-ranked-v1">
+           val-ranked-v1
+           <span class="api_desc">VALORANT</span>
+        </a>
+      </li>
+    
+      <li class="list-group-item list-group-item-api list-group-item--bold list-group-messages">
+        <a href='#val-status-v1' class="api_option" api-name="val-status-v1">
+           val-status-v1
+           <span class="api_desc">VALORANT</span>
+        </a>
+      </li>
+    
+  
+</ul>
+
+        </div>
+    </div>
+</div>
+
+<div class="main-view api-ref-mainview">
+    <div class="padding-left-300">
+      
+        <div class="api_detail inner_content" api-name="account-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="champion-mastery-v4" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="champion-v3" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="clash-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="league-exp-v4" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="league-v4" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lol-challenges-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lol-rso-match-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lol-status-v4" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lor-deck-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lor-inventory-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lor-match-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lor-ranked-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="lor-status-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="match-v5" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="riftbound-content-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="spectator-tft-v5" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="spectator-v5" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="summoner-v4" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="tft-league-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="tft-match-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="tft-status-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="tft-summoner-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="tournament-stub-v5" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="tournament-v5" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="val-console-match-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="val-console-ranked-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="val-content-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="val-match-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="val-ranked-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+        <div class="api_detail inner_content" api-name="val-status-v1" style="display: none;">
+          <div class="loading"></div>
+        </div>
+      
+    </div>
+</div>
+
+    </div>
+  </div>
+
+
+
+  <footer class="site-footer">
+    <p class="footer-note">© 2021 Riot Games, Inc. All rights reserved. League of Legends and Riot Games are trademarks, service marks, and registered trademarks of Riot Games, Inc.</p>
+    <ul class="footer-nav">
+      <li><a href="/terms">API Terms</a></li>
+      <li><a href="/getting-started.html">Getting Started</a></li>
+      <li><a href="https://www.riotgames.com/en/privacy-notice">Privacy Notice</a></li>
+    </ul>
+  </footer>
+
+
+
+  <script src="/static/js/remark/vendor/bootstrap/bootstrap.min.0657062984d9.js"></script>
+  <script src="/static/js/clipboard.3e5e0fa949e0.js"></script>
+  <script src="/static/js/main.3d3dfe549b0d.js"></script>
+  <script src="/static/js/csrf.7ce191938cc3.js"></script>
+  <script src="/static/js/scripts.ebece89cb94f.js"></script>
+</body>
+</html>

@@ -1,0 +1,663 @@
+
+  <ul id="resources" style="margin-left:0;">
+    <li id="resource_1514" class="resource active" api-name="lol-status-v4">
+
+      <!-- HEADING -->
+      <div class="heading">
+
+        
+
+        
+
+        <h2><a href="#lol-status-v4"><span style="font-size:18px;">lol-status-v4</span></a></h2>
+        <!-- Menu -->
+        <ul class="options">
+          <li><a href="#" onclick="Docs.collapseOperationsForResource('1514'); return false;">Collapse Operations</a></li>
+          <li><a href="#" onclick="Docs.expandOperationsForResource('1514'); return false;">Expand Operations</a></li>
+        </ul>
+      </div>
+      <ul class="endpoints" id="1514_endpoint_list" style="overflow: hidden;">
+        <li class="endpoint">
+          <ul class="operations" style="width:100%; margin:0px; padding:0px;">
+            
+
+
+    <li class="get operation" id="_getPlatformData" >
+        <div class="heading">
+            <span class="http_method">
+              <a href="#lol-status-v4/GET_getPlatformData" onclick="Docs.toggleOperationForResource('lol-status-v4_GET_getPlatformData');">GET</a>
+            </span>
+            <span class="path">
+              <a href="#lol-status-v4/GET_getPlatformData" onclick="Docs.toggleOperationForResource('lol-status-v4_GET_getPlatformData');">/lol/status/v4/platform-data</a>
+            </span>
+            <ul class="options">
+               <li><a href="#lol-status-v4/GET_getPlatformData" onclick="Docs.toggleOperationForResource('lol-status-v4_GET_getPlatformData');">Get League of Legends status for the given platform.</a></li>
+            </ul>
+        </div>
+        
+<div class="content" id="lol-status-v4_GET_getPlatformData_content" style="overflow: hidden; display: none;">
+  
+
+  
+
+  <div id="inputs-link" style="margin-bottom:10px;"><a href="#lol-status-v4/GET_getPlatformData" onclick="Docs.jumpToResource('div#execute_inputs_lol-status-v4_GET_getPlatformData')" style="font-size:16px; font-weight: bold">Jump to Inputs</a></div>
+
+  
+
+  
+
+  
+
+  <div class="api_block">
+     <h4>Response Classes</h4>
+     <div class="block response_body">
+      
+        <h4>Return value: PlatformDataDto </h4>
+      
+     </div>
+     
+<script>
+  function goToDefinition (definition) {
+    var element = document.getElementById(definition);
+    if(element) {
+      element.scrollIntoView();
+      window.scrollBy(0, -100);
+    }
+  }
+</script>
+
+<div class="block response_body">
+  <h5 id="1514-getPlatformData-PlatformDataDto" style="display: inline;">PlatformDataDto </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>id</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>name</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>locales</td>
+             <td>
+               
+                 List[string]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>maintenances</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1514-getPlatformData-StatusDto')">StatusDto</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>incidents</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1514-getPlatformData-StatusDto')">StatusDto</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1514-getPlatformData-StatusDto" style="display: inline;">StatusDto </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>id</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>maintenance_status</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             (Legal values:  scheduled,  in_progress,  complete)
+             </td>
+          </tr>
+        
+             <tr>
+             <td>incident_severity</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             (Legal values:  info,  warning,  critical)
+             </td>
+          </tr>
+        
+             <tr>
+             <td>titles</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1514-getPlatformData-ContentDto')">ContentDto</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>updates</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1514-getPlatformData-UpdateDto')">UpdateDto</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>created_at</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>archive_at</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>updated_at</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>platforms</td>
+             <td>
+               
+                 List[string]
+               
+             </td>
+             <td>(Legal values: windows, macos, android, ios, ps4, xbone, switch)
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1514-getPlatformData-ContentDto" style="display: inline;">ContentDto </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>locale</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>content</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+<div class="block response_body">
+  <h5 id="1514-getPlatformData-UpdateDto" style="display: inline;">UpdateDto </h5>
+  
+  <br/>
+  <table class="table">
+     <thead>
+        <tr>
+           <th>Name</th>
+           <th style="min-width:80px;">Data Type</th>
+           <th>Description</th>
+        </tr>
+     </thead>
+     <tbody>
+        
+             <tr>
+             <td>id</td>
+             <td>
+               
+                 int
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>author</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>publish</td>
+             <td>
+               
+                 boolean
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>publish_locations</td>
+             <td>
+               
+                 List[string]
+               
+             </td>
+             <td>(Legal values: riotclient, riotstatus, game)
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>translations</td>
+             <td>
+               
+                 List[<a style="cursor: pointer" onclick="goToDefinition('1514-getPlatformData-ContentDto')">ContentDto</a>]
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>created_at</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+             <tr>
+             <td>updated_at</td>
+             <td>
+               
+                 string
+               
+             </td>
+             <td>
+             
+             </td>
+          </tr>
+        
+     </tbody>
+  </table>
+</div>
+
+
+<hr/>
+
+  </div>
+
+  <div class="api_block">
+     <h4>Response Errors</h4>
+     <table class="table">
+  <thead>
+     <tr>
+        <th>HTTP Status Code</th>
+        <th>Reason</th>
+     </tr>
+  </thead>
+  <tbody>
+    
+       <tr class="odd">
+          <td>400</td>
+          <td>Bad request</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>401</td>
+          <td>Unauthorized</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>403</td>
+          <td>Forbidden</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>404</td>
+          <td>Data not found</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>405</td>
+          <td>Method not allowed</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>415</td>
+          <td>Unsupported media type</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>429</td>
+          <td>Rate limit exceeded</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>500</td>
+          <td>Internal server error</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>503</td>
+          <td>Service unavailable</td>
+       </tr>
+     
+       <tr class="odd">
+          <td>504</td>
+          <td>Gateway timeout</td>
+       </tr>
+     
+  </tbody>
+</table>
+
+  </div>
+
+  <div id="execute_inputs_lol-status-v4_GET_getPlatformData">
+
+     <form accept-charset="UTF-8" class="sandbox">
+        <input type="hidden" name="apiName" value="lol-status-v4">
+        <input type="hidden" name="apiSimpleName" class="executeApiNameVal" value="lol-status-v4">
+        <input type="hidden" name="methodName" class="executeMethodNameVal" value="getPlatformData">
+        <input type="hidden" name="httpMethod" class="executeMethodGetVal" value="GET">
+
+        
+
+        
+
+        
+
+        
+
+        
+
+        
+        <h4>Select Region to Execute Against</h4>
+        <select class="form-control" name='execute_against' style="width: 200px" id="execute_against_lol-status-v4_GET_getPlatformData">
+            
+                
+            <option value='BR1'>BR1</option>
+                
+            
+                
+            <option value='EUN1'>EUN1</option>
+                
+            
+                
+            <option value='EUW1'>EUW1</option>
+                
+            
+                
+            <option value='JP1'>JP1</option>
+                
+            
+                
+            <option value='KR'>KR</option>
+                
+            
+                
+            <option value='LA1'>LA1</option>
+                
+            
+                
+            <option value='LA2'>LA2</option>
+                
+            
+                
+            <option value='ME1'>ME1</option>
+                
+            
+                
+            <option value='NA1'>NA1</option>
+                
+            
+                
+            <option value='OC1'>OC1</option>
+                
+            
+                
+            <option value='PBE1'>PBE1</option>
+                
+            
+                
+            <option value='RU'>RU</option>
+                
+            
+                
+            <option value='SG2'>SG2</option>
+                
+            
+                
+            <option value='TR1'>TR1</option>
+                
+            
+                
+            <option value='VN2'>VN2</option>
+                
+            
+        </select>
+        
+
+        <div style="margin-top:15px">
+
+        
+
+        <div style="margin-top:15px">
+        <h4>
+        Include API key
+        <a class="toggle_key_include_info" style="cursor: pointer">(?)</a>
+        </h4>
+
+        <div class="key_include_info hide" style="font-size:11px; font-style: italic;">
+          Including an API key as a <b>query</b> param allows for easy debugging in the browser.
+          <br/>
+          Including an API key as a <b>header</b> param, avoids accidentally copy/pasting your API key in public.
+        </div>
+
+        <div class="radio-default radio-inline btn-save">
+          <label for="" alt="test">
+            <input name="api_key_url" type="radio" value="0"  checked='checked'  > Query Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="1"  > Header Param
+          </label>
+        </div>
+        <div class="radio-default radio-inline btn-save">
+          <label for=""  alt="test">
+            <input name="api_key_url" type="radio" value="2"  > Not required
+          </label>
+        </div>
+        </div>
+        <hr/>
+
+        
+          <div class="sandbox_header">
+           <div style="font-style: italic;">You must <a href="/login" style="padding-left: 0; padding-bottom: 20px;font-size:inherit;">login</a> to execute APIs through this page.</div>
+           <input id="close_lol-status-v4_GET_getPlatformData" type="button" value="Close" class="btn btn-riot" onclick="Docs.toggleOperationForResource('lol-status-v4_GET_getPlatformData');">
+          </div>
+        
+     </form>
+  </div>
+
+  <div id="response_GET_getPlatformData" class="response">
+
+    <div id="response_url_lol-status-v4_GET_getPlatformData_container" class="hide">
+      <h4>Request URL</h4>
+      <div id="response_url_lol-status-v4_GET_getPlatformData" class="block request_url" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_body_lol-status-v4_GET_getPlatformData_container" class="hide">
+      <h4>Request Body</h4>
+      <div id="request_body_lol-status-v4_GET_getPlatformData" class="block request_body" style="overflow: auto"></div>
+    </div>
+
+    <div id="request_headers_lol-status-v4_GET_getPlatformData_container" class="hide">
+      <h4>Request Headers</h4>
+      <div id="response_reqheaders_lol-status-v4_GET_getPlatformData" class="block request_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_code_lol-status-v4_GET_getPlatformData_container" class="hide">
+      <h4>Response Code</h4>
+      <div id="response_rescode_lol-status-v4_GET_getPlatformData" class="block response_code" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_headers_lol-status-v4_GET_getPlatformData_container" class="hide">
+      <h4>Response Headers</h4>
+      <div id="response_resheaders_lol-status-v4_GET_getPlatformData" class="block response_headers" style="overflow: auto"></div>
+    </div>
+
+    <div id="response_body_lol-status-v4_GET_getPlatformData_container" class="hide">
+      <h4>Response Body</h4>
+      <div id="response_body_lol-status-v4_GET_getPlatformData" class="block response_body" style="overflow: auto"></div>
+    </div>
+  </div>
+</div>
+
+    </li>
+
+
+          </ul>
+        </li>
+      </ul>
+    </li>
+  </ul>
+

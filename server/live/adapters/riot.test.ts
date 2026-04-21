@@ -29,9 +29,7 @@ describe('createRiotBackendLiveDraftAdapter', () => {
             source: 'RIOT_API',
             accountLookup: { status: 'success' },
             summonerLookupByPuuid: { status: 'success' },
-            summonerLookupByAccountFallback: { status: 'not-needed' },
-            summonerLookupByNameFallback: { status: 'not-needed' },
-            encryptedSummonerId: { status: 'success' },
+            spectatorLookupPath: { status: 'success' },
             activeGameLookup: { status: 'success' },
           },
           activeGame: {
@@ -88,7 +86,78 @@ describe('createRiotBackendLiveDraftAdapter', () => {
     unsubscribe()
   })
 
-  it('normalizes fallback summoner-name 403 failures into a clearer connected Riot warning', async () => {
+  it('returns Riot lookup debug when account recognition fails because the API key is invalid or expired', async () => {
+    const adapter = createRiotBackendLiveDraftAdapter({
+      riotApiKey: 'expired-key',
+      clientFactory: () => ({
+        recognizePlayerByRiotId: vi.fn().mockRejectedValue(
+          Object.assign(new Error('Riot account lookup failed: RIOT_API_KEY is invalid or expired.'), {
+            lookupDebug: {
+              source: 'RIOT_API',
+              accountLookup: {
+                status: 'failed',
+                details:
+                  'RIOT_API_KEY is invalid or expired. Generate a fresh Riot Developer Portal key, set it in `.env.local` as `RIOT_API_KEY=...`, restart `npm run server:dev`, and retry. The backend reads `.env` and `.env.local`, not `.env.example`. If you already updated `.env.local`, check whether a stale shell/system `RIOT_API_KEY` is overriding it.',
+              },
+              summonerLookupByPuuid: { status: 'skipped' },
+              spectatorLookupPath: { status: 'skipped' },
+              activeGameLookup: { status: 'skipped' },
+            },
+          }),
+        ),
+      }),
+    })
+
+    const recognizedSession = await adapter.recognizePlayer({ gameName: 'Tester', tagLine: 'LAN', region: 'LAN' })
+
+    expect(recognizedSession).toMatchObject({
+      status: 'error',
+      message: 'Riot account lookup failed: RIOT_API_KEY is invalid or expired.',
+      riotLookupDebug: {
+        source: 'RIOT_API',
+        accountLookup: { status: 'failed' },
+      },
+    })
+  })
+
+  it('stays connected and informational when the player is recognized but no active game is returned', async () => {
+    const adapter = createRiotBackendLiveDraftAdapter({
+      riotApiKey: 'riot-key',
+      loadChampionCatalog: vi.fn().mockResolvedValue({
+        resolvedPatchVersion: '16.8.1',
+        championCatalog: [],
+      }),
+      clientFactory: () => ({
+        recognizePlayerByRiotId: vi.fn().mockResolvedValue({
+          account: { puuid: 'puuid-1', gameName: 'Suli', tagLine: 'LAN' },
+          summoner: { puuid: 'puuid-1', summonerLevel: 1, profileIconId: 1 },
+          region: 'LAN',
+          activeGame: null,
+          lookupDebug: {
+            source: 'RIOT_API',
+            accountLookup: { status: 'success' },
+            summonerLookupByPuuid: { status: 'success' },
+            spectatorLookupPath: { status: 'success' },
+            activeGameLookup: { status: 'not-found' },
+          },
+        }),
+      }),
+    })
+
+    const recognizedSession = await adapter.recognizePlayer({ gameName: 'Suli', tagLine: 'LAN', region: 'LAN' })
+
+    expect(recognizedSession).toMatchObject({
+      status: 'connected',
+      message: 'Player recognized through americas/la1, but no active game was detected.',
+      snapshotDebug: {
+        source: 'RIOT_API',
+        snapshotMapped: false,
+        lastMappingFailureReason: 'No active game snapshot is currently available from Riot spectator APIs.',
+      },
+    })
+  })
+
+  it('stays connected and reports a forbidden spectator outcome when active-game lookup returns 403', async () => {
     const adapter = createRiotBackendLiveDraftAdapter({
       riotApiKey: 'riot-key',
       loadChampionCatalog: vi.fn().mockResolvedValue({
@@ -102,18 +171,13 @@ describe('createRiotBackendLiveDraftAdapter', () => {
           region: 'LAN',
           activeGame: null,
           activeGameWarning:
-            'Riot recognized the player profile, but fallback summoner-name lookup for Suli failed (Riot API request failed: 403 Forbidden - Forbidden). Active-game detection was skipped.',
+            'Riot spectator-v5 active-game lookup returned 403 Forbidden for this player/session. Recognition still succeeded, but spectator roster access is unavailable here.',
           lookupDebug: {
             source: 'RIOT_API',
             accountLookup: { status: 'success' },
             summonerLookupByPuuid: { status: 'success' },
-            summonerLookupByAccountFallback: { status: 'skipped' },
-            summonerLookupByNameFallback: {
-              status: 'failed',
-              details: 'Fallback summoner-name lookup for Suli failed: Riot API request failed: 403 Forbidden - Forbidden',
-            },
-            encryptedSummonerId: { status: 'failed' },
-            activeGameLookup: { status: 'skipped' },
+            spectatorLookupPath: { status: 'success' },
+            activeGameLookup: { status: 'forbidden' },
           },
         }),
       }),
@@ -124,12 +188,16 @@ describe('createRiotBackendLiveDraftAdapter', () => {
     expect(recognizedSession).toMatchObject({
       status: 'connected',
       message:
-        'Player recognized through americas/la1. Riot recognized the player profile, but Riot blocked the fallback summoner-name spectator recovery step (403 Forbidden). Active-game detection was skipped.',
+        'Player recognized through americas/la1. Riot spectator-v5 active-game lookup returned 403 Forbidden for this player/session. Recognition still succeeded, but spectator roster access is unavailable here.',
       snapshotDebug: {
         source: 'RIOT_API',
         snapshotMapped: false,
         lastMappingFailureReason:
-          'Riot recognized the player profile, but Riot blocked the fallback summoner-name spectator recovery step (403 Forbidden). Active-game detection was skipped.',
+          'Riot spectator-v5 active-game lookup returned 403 Forbidden for this player/session. Recognition still succeeded, but spectator roster access is unavailable here.',
+      },
+      riotLookupDebug: {
+        source: 'RIOT_API',
+        activeGameLookup: { status: 'forbidden' },
       },
     })
   })

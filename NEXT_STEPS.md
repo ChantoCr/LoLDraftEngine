@@ -14,47 +14,59 @@ Completed or substantially improved during this session:
 - desktop mock triggering can now be done directly from the UI
 - `DESKTOP_CLIENT` no longer requires Riot name/tag input
 - RIOT_API mode now stays connected/informational instead of pretending unsupported streaming is an error
+- Riot lookup diagnostics, pipeline summary, and recommended-next-step guidance now exist in the UI
+- desktop companion debug visibility now exists, including last heartbeat / companion id / last ingest event / lightweight timeline
 - Riot active-game roster snapshots can now be mapped into internal `DraftState` when spectator APIs expose the live game roster
+- Riot role inference is now heuristic-based instead of simple participant-order placement only
+- the official Riot docs were checked and the Riot live path was corrected to use `spectator-v5` active-game lookup with the player's **PUUID directly**
+- legacy encrypted-summoner/accountId/name fallback assumptions are no longer the required path for Riot spectator lookup
 - a deterministic live game-plan layer now exists
 - the AI coach panel is now richer and grounded in deterministic game-plan outputs
 
 Current validated state:
 - `npm run test:run` passes
 - `npm run build` passes
-- 38 test files
-- 78 tests passing
+- 39 test files
+- 83 tests passing
 
 ---
 
-## Priority 1 — Riot live-game snapshot hardening
+## Priority 1 — Riot live-game validation after the official-doc fix
 ### Goal
-Make `RIOT_API` reliably useful as a **live-game roster analysis mode** even though Riot public APIs still cannot provide real champ-select streaming.
+Verify that `RIOT_API` now follows the correct modern Riot flow in real use:
+- account recognition
+- optional summoner profile metadata lookup
+- spectator-v5 active-game lookup by **PUUID**
+- roster mapping into `DraftState` when available
 
 ### Why this matters now
-Desktop-client live sync is in a much stronger state. The next best value from Riot mode is to populate the board from an active live game when spectator data exists, then feed composition/matchup/game-plan analysis from that state.
+The biggest Riot issue in this chat sequence was an outdated assumption about needing legacy encrypted summoner identifiers for spectator lookup. The official Riot docs indicate spectator-v5 should use the player's PUUID directly. That fix is now implemented and needs real-world validation.
 
 ### What is already done
 Implemented now:
 - Riot account recognition
-- summoner profile lookup
-- active-game checks
-- active-game failure handling improvements
+- summoner profile metadata lookup
+- official-doc-aligned spectator-v5 PUUID lookup path
+- clearer active-game failure handling
+- Riot lookup diagnostics / pipeline summary / recommended actions
 - Riot active-game roster -> `DraftState` mapper
-- initial and polled Riot live-game snapshot support
+- heuristic role inference for Riot rosters
 
 ### Remaining deliverables
-- better role inference for Riot live-game rosters
-- clearer spectator-unavailable messaging
-- debug visibility for whether a Riot live roster was mapped successfully
-- optional timeline/debug events for Riot polling
-- more real-world active-game fixture coverage
+- verify real-world active-game success / not-found / forbidden outcomes on the corrected PUUID path
+- capture recorded fixtures for those outcomes
+- add route/adapter tests around those real outcomes
+- refine messaging if Riot spectator-v5 returns new edge-case payloads
 
 ### Suggested next tasks
-1. improve Riot roster role inference beyond simple order-based placement
-2. add a Riot snapshot debug panel / event visibility
-3. add route/adapter tests for spectator-unavailable and roster-available transitions
-4. add more recorded active-game payload fixtures
-5. keep Riot mode explicitly framed as live-game analysis, not draft streaming
+1. test `RIOT_API` against a real live game using the corrected spectator-v5 PUUID path
+2. record fixture payloads for:
+   - active game found
+   - no active game found
+   - forbidden / unavailable
+3. add regression tests for those real outcomes
+4. keep Riot mode explicitly framed as live-game analysis, not draft streaming
+5. avoid reintroducing legacy encrypted-summoner fallback assumptions unless Riot docs require them again
 
 ---
 
@@ -136,23 +148,22 @@ Real matchup, synergy, and meta signals are the next major quality unlock after 
 
 ---
 
-## Priority 5 — Draft UX / Live debug visibility
+## Priority 5 — Draft UX / Live debug visibility follow-up
 ### Goal
-Improve practical usability and debuggability of live sessions.
+Build on the newly added Riot diagnostics and desktop debug/timeline panel with small usability improvements only where they unlock validation speed.
 
-### Deliverables
+### Already done
 - desktop debug/timeline panel
 - Riot snapshot/debug visibility
 - last ingest event visibility
 - companion connection health visibility
-- easier board-source inspection
+- recommended next actions in Riot mode
 
-### Suggested tasks
-1. show last draft-state source and timestamp
-2. show last heartbeat / companion instance id
-3. show Riot snapshot mapped / not mapped reason
-4. add event counters / lightweight timeline
-5. keep UI presentation separate from domain truth
+### Suggested follow-up tasks
+1. optionally add event counters to the desktop timeline
+2. optionally add last successful Riot snapshot timestamp separate from last poll/update timestamp
+3. keep UI presentation separate from domain truth
+4. avoid overbuilding diagnostics unless they directly help fixture capture or real-world validation
 
 ---
 
@@ -171,11 +182,11 @@ Keep regressions under control as Riot snapshots, Desktop Client, and coach outp
 ---
 
 ## Recommended immediate execution order
-1. Riot live-game snapshot hardening
+1. Validate the corrected Riot spectator-v5 PUUID flow against real games and capture fixtures
 2. Live Game Plan / Coach expansion
 3. Curated champion trait dataset persistence
 4. Real external stats provider connection
-5. Live debug visibility and UX improvements
+5. Small follow-up polish to live debug UX only if needed for validation
 
 ---
 
@@ -183,17 +194,20 @@ Keep regressions under control as Riot snapshots, Desktop Client, and coach outp
 If continuing in a new chat, start here:
 
 ### Step 1
-Verify why the current `RIOT_API` live game is or is not producing a mapped roster snapshot on the board.
+Verify the corrected `RIOT_API` spectator-v5 **PUUID-based** active-game lookup against a real live game.
 
 ### Step 2
-Improve role inference and debug visibility for Riot live-game snapshots.
+Capture / record the real outcome:
+- active game found and mapped
+- no active game found
+- spectator forbidden / unavailable
 
 ### Step 3
-Expand the deterministic game-plan outputs for live populated boards.
+If Riot validation looks healthy, shift immediately into expanding deterministic game-plan outputs for live populated boards.
 
 That path keeps the project aligned with the real product goal:
 - `DESKTOP_CLIENT` for true live draft sync
-- `RIOT_API` for useful live-game roster analysis
+- `RIOT_API` for useful live-game roster analysis when spectator APIs cooperate
 - deterministic coaching layered on top
 
 ---
