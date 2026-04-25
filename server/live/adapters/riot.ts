@@ -3,6 +3,7 @@ import { loadDesktopChampionCatalog } from '@server/live/desktopClient/championC
 import { mapRiotActiveGameToDraftStateWithDebug } from '@server/live/riot/activeGameMapper'
 import { createRiotApiClient, type RiotApiClient, type RiotRecognizedPlayer } from '@server/live/riot/client'
 import { getRiotRegionRouting } from '@server/live/riot/routing'
+import { buildRiotDraftQueueContext } from '@server/live/riot/queues'
 import type { BackendLiveDraftAdapter, RecognizedLiveSession } from '@server/live/types'
 import type { SummonerIdentity } from '@/domain/live/types'
 
@@ -94,10 +95,17 @@ async function buildRiotRecognitionResult(
         : activeGameMappingResult?.failureReason ??
           (initialDraftState ? undefined : 'The Riot active-game roster was detected but could not be mapped into the draft board.')
       : normalizedActiveGameWarning
+    const activeQueueLabel = recognizedPlayer.activeGame
+      ? buildRiotDraftQueueContext({
+          queueId: recognizedPlayer.activeGame.gameQueueConfigId,
+          gameMode: recognizedPlayer.activeGame.gameMode,
+          gameType: recognizedPlayer.activeGame.gameType,
+        }).label
+      : undefined
     const activeGameMessage = recognizedPlayer.activeGame
       ? initialDraftState
-        ? `Active game detected on ${routing.platformId} (${recognizedPlayer.activeGame.gameMode}). The current live roster was mapped into the draft board for composition review, but Riot public APIs still do not expose true champion-select streaming.`
-        : `Active game detected on ${routing.platformId} (${recognizedPlayer.activeGame.gameMode}), but the live roster could not be mapped into the draft board yet. Riot public APIs still do not expose true champion-select streaming.`
+        ? `Active game detected on ${routing.platformId} (${activeQueueLabel ?? recognizedPlayer.activeGame.gameMode}). The current live roster was mapped into the draft board for composition review, but Riot public APIs still do not expose true champion-select streaming.`
+        : `Active game detected on ${routing.platformId} (${activeQueueLabel ?? recognizedPlayer.activeGame.gameMode}), but the live roster could not be mapped into the draft board yet. Riot public APIs still do not expose true champion-select streaming.`
       : normalizedActiveGameWarning
         ? `Player recognized through ${routing.regionalCluster}/${routing.platformId}. ${normalizedActiveGameWarning}`
         : `Player recognized through ${routing.regionalCluster}/${routing.platformId}, but no active game was detected.`

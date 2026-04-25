@@ -27,6 +27,7 @@ export const mockDraftState = createDraftState({
 export const mockChampionPoolProfile: ChampionPoolProfile = {
   playerLabel: 'Support Pool',
   role: 'SUPPORT',
+  source: 'MANUAL',
   entries: [
     { championId: 'nautilus', tier: 'MAIN', masteryConfidence: 0.92 },
     { championId: 'braum', tier: 'COMFORT', masteryConfidence: 0.81 },

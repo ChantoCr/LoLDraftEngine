@@ -1,5 +1,8 @@
+import type { ChampionBuildRecommendation } from '@/domain/build/types'
 import type { ConfidenceLevel, ScoreValue } from '@/domain/common/types'
-import type { RecommendationMode } from '@/domain/draft/types'
+import type { CompositionProfile } from '@/domain/composition/types'
+import type { DraftContext } from '@/domain/draft-context/types'
+import type { DraftState, RecommendationMode } from '@/domain/draft/types'
 
 export type RecommendationDimension =
   | 'allySynergy'
@@ -12,8 +15,20 @@ export type RecommendationDimension =
   | 'executionFit'
   | 'metaValue'
   | 'comfortFit'
+  | 'laneMatchupFit'
+  | 'objectiveSetupFit'
+  | 'macroPostureFit'
 
-export type RecommendationReasonType = 'SYNERGY' | 'COUNTER' | 'REPAIR' | 'RISK' | 'POOL' | 'META'
+export type RecommendationReasonType =
+  | 'SYNERGY'
+  | 'COUNTER'
+  | 'REPAIR'
+  | 'RISK'
+  | 'POOL'
+  | 'META'
+  | 'LANE'
+  | 'OBJECTIVE'
+  | 'POSTURE'
 
 export interface RecommendationDimensionScore {
   dimension: RecommendationDimension
@@ -38,10 +53,29 @@ export interface RecommendationBreakdown {
   reasons: RecommendationReason[]
 }
 
+export interface RecommendationNarrative {
+  headline: string
+  summary: string
+  decisionFactors: string[]
+}
+
 export interface RecommendationCandidate {
   championId: string
   championName: string
   recommendationMode: RecommendationMode
   tags: string[]
   breakdown: RecommendationBreakdown
+  narrative: RecommendationNarrative
+}
+
+export interface RecommendationScenario {
+  simulatedDraftState: DraftState
+  allyProfile: CompositionProfile
+  enemyProfile: CompositionProfile
+  draftContext: DraftContext
+}
+
+export interface RecommendationPackage {
+  candidate: RecommendationCandidate
+  build?: ChampionBuildRecommendation
 }

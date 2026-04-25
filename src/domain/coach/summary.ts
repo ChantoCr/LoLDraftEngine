@@ -2,6 +2,7 @@ import type { Champion } from '@/domain/champion/types'
 import { getDraftSlot } from '@/domain/draft/selectors'
 import type { DraftState } from '@/domain/draft/types'
 import type { CompositionProfile } from '@/domain/composition/types'
+import type { LiveGamePlan } from '@/domain/game-plan/types'
 
 interface BuildCoachSummaryInput {
   draftState: DraftState
@@ -9,6 +10,7 @@ interface BuildCoachSummaryInput {
   compositionProfile: CompositionProfile
   bestOverallLabel?: string
   bestPoolLabel?: string
+  gamePlan?: LiveGamePlan
 }
 
 function buildChampionExecutionAdvice(champion: Champion) {
@@ -51,6 +53,7 @@ export function buildCoachSummary({
   compositionProfile,
   bestOverallLabel,
   bestPoolLabel,
+  gamePlan,
 }: BuildCoachSummaryInput) {
   const currentSlot = getDraftSlot(draftState.allyTeam, draftState.currentPickRole)
   const currentChampion = currentSlot?.championId ? championsById[currentSlot.championId] : undefined
@@ -62,7 +65,10 @@ export function buildCoachSummary({
       .map((sentence) => sentence.charAt(0).toUpperCase() + sentence.slice(1))
       .join('. ')
 
-    return `On ${currentChampion.name} ${draftState.currentPickRole}, your job is to ${executionAdvice}. As a team, you win by ${primaryWinCondition}. Be careful to ${primaryWeakness}.`
+    const laneSummary = gamePlan?.lanePhase?.summary ? ` Lane phase: ${gamePlan.lanePhase.summary}` : ''
+    const midGameSummary = gamePlan?.midGame?.summary ? ` Mid game: ${gamePlan.midGame.summary}` : ''
+
+    return `On ${currentChampion.name} ${draftState.currentPickRole}, your job is to ${executionAdvice}. As a team, you win by ${primaryWinCondition}. Be careful to ${primaryWeakness}.${laneSummary}${midGameSummary}`
   }
 
   const firstGap = compositionProfile.structuralGaps[0]?.toLowerCase() ?? 'draft cohesion'

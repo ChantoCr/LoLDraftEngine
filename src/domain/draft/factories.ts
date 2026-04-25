@@ -28,6 +28,7 @@ interface CreateDraftStateInput {
   allyBans?: string[]
   enemyBans?: string[]
   availableChampionIds?: string[]
+  queueContext?: DraftState['queueContext']
 }
 
 export function createDraftSlot(role: Role, input?: DraftSlotInput): DraftSlot {
@@ -59,5 +60,6 @@ export function createDraftState(input: CreateDraftStateInput): DraftState {
     allyTeam: createTeamDraft('ALLY', input.allyPicks, input.allyBans),
     enemyTeam: createTeamDraft('ENEMY', input.enemyPicks, input.enemyBans),
     availableChampionIds: input.availableChampionIds ?? [],
+    queueContext: input.queueContext,
   }
 }

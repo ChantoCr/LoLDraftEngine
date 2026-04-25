@@ -1,5 +1,6 @@
 import type { Champion } from '@/domain/champion/types'
 import type { CompositionProfile } from '@/domain/composition/types'
+import { buildDraftContext } from '@/domain/draft-context/build'
 import { getDraftSlot } from '@/domain/draft/selectors'
 import type { DraftState } from '@/domain/draft/types'
 import type { LiveGamePlan } from '@/domain/game-plan/types'
@@ -67,8 +68,15 @@ function buildPracticalRules(
   allyProfile: CompositionProfile,
   enemyProfile: CompositionProfile,
   keyThreatChampionName?: string,
+  laneSummary?: string,
+  midGameSummary?: string,
+  objectiveSummary?: string,
 ) {
   const rules: string[] = []
+
+  if (laneSummary) {
+    rules.push(laneSummary)
+  }
 
   if (allyProfile.winConditions[0]) {
     rules.push(allyProfile.winConditions[0])
@@ -90,11 +98,19 @@ function buildPracticalRules(
     rules.push('Avoid unnecessary early flips if your comp improves significantly with time or item spikes.')
   }
 
-  if (rules.length < 3 && allyProfile.structuralGaps[0]) {
+  if (objectiveSummary) {
+    rules.push(objectiveSummary)
+  }
+
+  if (midGameSummary) {
+    rules.push(midGameSummary)
+  }
+
+  if (rules.length < 4 && allyProfile.structuralGaps[0]) {
     rules.push(`Play around the fact that your comp is still light on ${allyProfile.structuralGaps[0].toLowerCase()}.`)
   }
 
-  return rules.slice(0, 3)
+  return rules.slice(0, 4)
 }
 
 export function buildLiveGamePlan({
@@ -107,6 +123,12 @@ export function buildLiveGamePlan({
   const playerChampionId = getDraftSlot(draftState.allyTeam, playerRole)?.championId
   const playerChampion = playerChampionId ? championsById[playerChampionId] : undefined
   const keyThreatChampionName = getEnemyThreatChampionName(enemyProfile, championsById)
+  const draftContext = buildDraftContext({
+    draftState,
+    championsById,
+    allyProfile,
+    enemyProfile,
+  })
 
   return {
     playerRole,
@@ -120,7 +142,19 @@ export function buildLiveGamePlan({
       : 'No single enemy threat stands out yet; respect the overall comp structure instead.',
     easiestWinCondition:
       allyProfile.winConditions[0] ?? 'Play toward your cleanest coordinated fight pattern and strongest objective setup.',
-    practicalRules: buildPracticalRules(playerChampion, allyProfile, enemyProfile, keyThreatChampionName),
+    practicalRules: buildPracticalRules(
+      playerChampion,
+      allyProfile,
+      enemyProfile,
+      keyThreatChampionName,
+      draftContext.lanePhaseByRole[playerRole]?.summary,
+      draftContext.midGame.summary,
+      draftContext.objectives.summary,
+    ),
     executionDifficulty: allyProfile.executionDifficulty,
+    lanePhase: draftContext.lanePhaseByRole[playerRole],
+    midGame: draftContext.midGame,
+    objectives: draftContext.objectives,
+    matchupDangers: draftContext.matchupDangers.slice(0, 3),
   }
 }

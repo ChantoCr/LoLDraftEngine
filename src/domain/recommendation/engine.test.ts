@@ -72,6 +72,24 @@ describe('recommendChampionsForDraft', () => {
     expect(recommendations.map((candidate) => candidate.championId)).toEqual(['braum', 'leona'])
   })
 
+  it('adds draft-context dimensions and reasons so recommendations explain lane, macro, and objective fit', () => {
+    const recommendations = recommendChampionsForDraft({
+      draftState: supportLastPickAntiDiveScenario,
+      championsById: testChampionMap,
+      recommendationMode: 'BEST_OVERALL',
+      topN: 2,
+    })
+
+    const topCandidate = recommendations[0]!
+
+    expect(topCandidate.breakdown.dimensions.some((dimension) => dimension.dimension === 'laneMatchupFit')).toBe(true)
+    expect(topCandidate.breakdown.dimensions.some((dimension) => dimension.dimension === 'objectiveSetupFit')).toBe(true)
+    expect(topCandidate.breakdown.dimensions.some((dimension) => dimension.dimension === 'macroPostureFit')).toBe(true)
+    expect(
+      topCandidate.breakdown.reasons.some((reason) => ['LANE', 'OBJECTIVE', 'POSTURE'].includes(reason.type)),
+    ).toBe(true)
+  })
+
   it('blends structured stats signals into synergy, counter, and meta scoring without removing deterministic behavior', () => {
     const withoutStats = recommendChampionsForDraft({
       draftState: supportLastPickAntiDiveScenario,

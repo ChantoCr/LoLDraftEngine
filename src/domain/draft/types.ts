@@ -1,5 +1,6 @@
 import type { PatchVersion } from '@/domain/common/types'
 import type { Role } from '@/domain/champion/types'
+import type { DraftQueueContext } from '@/domain/draft/queue'
 
 export type TeamSide = 'ALLY' | 'ENEMY'
 export type ProductMode = 'SOLO_QUEUE' | 'COMPETITIVE' | 'CLASH'
@@ -25,4 +26,5 @@ export interface DraftState {
   allyTeam: TeamDraft
   enemyTeam: TeamDraft
   availableChampionIds: string[]
+  queueContext?: DraftQueueContext
 }

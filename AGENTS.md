@@ -170,3 +170,37 @@ Act like a senior architect paired with a product-minded engineer.
 Give concrete solutions.
 Prefer usable outputs over abstract advice.
 Keep the project aligned with the product vision at all times.
+
+## Current Continuity Note
+The current application state is working and the immediate next focus is **not** more Riot plumbing unless explicitly requested.
+
+Current near-term priorities are:
+1. patch-scoped curated build profile expansion
+2. curated champion-trait fidelity improvements
+3. curated threat-fidelity improvements
+4. personal pool / champion-pool advisor improvements
+5. composition analyzer improvements
+6. broader draft-context reasoning
+7. coach-layer integration for structured build outputs
+
+Important continuity reminders:
+- keep deterministic logic first
+- keep AI downstream of structured signals
+- preserve a clean distinction between best-overall and personal-pool outputs even if the UI presents them in one tabbed recommendation surface
+- recommendation candidate generation should continue using the loaded Data Dragon patch roster
+- remember that full-roster recommendation quality still depends on champion-trait fidelity and build-profile fidelity; scaffolded traits / scaffolded build profiles are still a limitation for many champions
+- a deterministic build recommendation layer now exists; keep it as a separate domain module downstream of recommendation + draft-context signals
+- curated build data is now patch-scoped; prefer expanding patch files instead of growing monolithic in-logic arrays
+- preserve the current workspace flow unless explicitly asked to change it:
+  - full-width live session
+  - draft board beside controls / bans / pool context
+  - full-width AI coach
+  - full-width tabbed recommendation engine
+- preserve the live-source distinction:
+  - `DESKTOP_CLIENT` = real live-sync path
+  - `RIOT_API` = recognition / live-game roster analysis path
+- if Riot debugging comes up again, remember:
+  - spectator-v5 active-game lookup should use the player's **PUUID directly**
+  - `401 Unauthorized - Unknown apikey` is a backend key/config problem, not a spectator path problem
+  - the backend reads `.env` and `.env.local`, not `.env.example`
+  - Riot champion mastery still needs an encrypted summoner id; the current resolver now also tries to recover it from active-game participant data when Riot omits it from the PUUID-based summoner response

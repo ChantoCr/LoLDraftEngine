@@ -15,6 +15,9 @@ export const RECOMMENDATION_WEIGHTS_BY_MODE: Record<ProductMode, RecommendationW
     executionFit: 1,
     metaValue: 0.4,
     comfortFit: 0,
+    laneMatchupFit: 0.9,
+    objectiveSetupFit: 0.7,
+    macroPostureFit: 0.75,
   },
   COMPETITIVE: {
     allySynergy: 1.15,
@@ -27,6 +30,9 @@ export const RECOMMENDATION_WEIGHTS_BY_MODE: Record<ProductMode, RecommendationW
     executionFit: 0.75,
     metaValue: 0.45,
     comfortFit: 0,
+    laneMatchupFit: 1,
+    objectiveSetupFit: 0.95,
+    macroPostureFit: 1,
   },
   CLASH: {
     allySynergy: 1.1,
@@ -39,5 +45,8 @@ export const RECOMMENDATION_WEIGHTS_BY_MODE: Record<ProductMode, RecommendationW
     executionFit: 0.9,
     metaValue: 0.4,
     comfortFit: 0,
+    laneMatchupFit: 0.95,
+    objectiveSetupFit: 0.85,
+    macroPostureFit: 0.9,
   },
 }

@@ -4,10 +4,13 @@ import { mockChampionMap, mockChampions } from '@/data/mock/champions'
 import { mockChampionPoolProfile, mockDraftState } from '@/data/mock/draft'
 import { mockStatsBundle } from '@/data/mock/stats'
 import { buildChampionCatalogFromStatsBundle, createChampionCatalogEntry } from '@/domain/champion/catalog'
+import { buildChampionPoolAdvice } from '@/domain/champion-pool/advisor'
 import { buildChampionMapFromScaffoldDataset } from '@/domain/champion-traits/scaffold'
 import type { Role } from '@/domain/champion/types'
 import { buildCoachSummary } from '@/domain/coach/summary'
 import { analyzeDraftComposition } from '@/domain/composition/analyzer'
+import { buildRecommendationModeComparison } from '@/domain/recommendation/compare'
+import { buildRecommendationPipeline } from '@/domain/recommendation/pipeline'
 import { buildLiveGamePlan } from '@/domain/game-plan/build'
 import {
   addBan,
@@ -17,7 +20,6 @@ import {
   setCurrentPickRole,
   setRecommendationMode,
 } from '@/domain/draft/operations'
-import { recommendChampionsForDraft } from '@/domain/recommendation/engine'
 import { AICoachPanel } from '@/features/coach/components/AICoachPanel'
 import { CompositionPanel } from '@/features/composition/components/CompositionPanel'
 import { BanPanel } from '@/features/draft-board/components/BanPanel'
@@ -26,6 +28,7 @@ import { LiveSessionPanel } from '@/features/live-session/components/LiveSession
 import { useLiveDraftSession } from '@/features/live-session/hooks/useLiveDraftSession'
 import { MetaPanel } from '@/features/meta/components/MetaPanel'
 import { ChampionPoolPanel } from '@/features/pool/components/ChampionPoolPanel'
+import { useResolvedChampionPool } from '@/features/pool/hooks/useResolvedChampionPool'
 import { RecommendationPanel } from '@/features/recommendations/components/RecommendationPanel'
 import { StatsIntelPanel } from '@/features/stats/components/StatsIntelPanel'
 import { useAvailablePatchVersions } from '@/features/stats/hooks/useAvailablePatchVersions'
@@ -140,6 +143,21 @@ export function DraftWorkspacePage() {
     onDraftState: handleRemoteDraftState,
   })
 
+  const {
+    championPool: resolvedChampionPool,
+    isLoading: isChampionPoolLoading,
+    error: championPoolError,
+  } = useResolvedChampionPool({
+    identity: syncMode === 'RIOT_API' ? session.player : undefined,
+    role: draftState.currentPickRole,
+    patchVersion: activeStatsBundle.patchVersion,
+    enabled: syncMode === 'RIOT_API' && Boolean(session.player),
+    fallbackPool: mockChampionPoolProfile.role === draftState.currentPickRole ? mockChampionPoolProfile : undefined,
+  })
+
+  const activeChampionPool = resolvedChampionPool ??
+    (mockChampionPoolProfile.role === draftState.currentPickRole ? mockChampionPoolProfile : undefined)
+
   const derivedState = useMemo(() => {
     const compositionProfile = analyzeDraftComposition({
       draftState,
@@ -150,46 +168,55 @@ export function DraftWorkspacePage() {
       championsById: activeChampionMap,
       side: 'ENEMY',
     })
-    const bestOverallRecommendations = recommendChampionsForDraft({
+    const recommendationPipeline = buildRecommendationPipeline({
       draftState,
       championsById: activeChampionMap,
-      recommendationMode: 'BEST_OVERALL',
+      championPool: activeChampionPool,
       statsBundle: activeStatsBundle,
-      topN: 3,
-    })
-    const personalPoolRecommendations = recommendChampionsForDraft({
-      draftState,
-      championsById: activeChampionMap,
-      recommendationMode: 'PERSONAL_POOL',
-      championPool: mockChampionPoolProfile,
-      statsBundle: activeStatsBundle,
-      topN: 3,
+      topN: 5,
+      buildTopN: 5,
     })
 
-    const bestOverall = bestOverallRecommendations[0]
-    const bestPool = personalPoolRecommendations[0]
+    const bestOverall = recommendationPipeline.bestOverall[0]?.candidate
+    const bestPool = recommendationPipeline.personalPool[0]?.candidate
     const bestOverallLabel = bestOverall ? bestOverall.championName : 'no available champion'
     const bestPoolLabel = bestPool ? bestPool.championName : 'no available pool candidate'
+    const gamePlan = buildLiveGamePlan({
+      draftState,
+      championsById: activeChampionMap,
+      allyProfile: compositionProfile,
+      enemyProfile: enemyCompositionProfile,
+    })
 
     return {
       compositionProfile,
-      bestOverallRecommendations,
-      personalPoolRecommendations,
-      gamePlan: buildLiveGamePlan({
-        draftState,
-        championsById: activeChampionMap,
-        allyProfile: compositionProfile,
-        enemyProfile: enemyCompositionProfile,
+      bestOverallRecommendations: recommendationPipeline.bestOverall,
+      personalPoolRecommendations: recommendationPipeline.personalPool,
+      championPoolAdvice: activeChampionPool
+        ? buildChampionPoolAdvice({
+            role: draftState.currentPickRole,
+            championPool: activeChampionPool,
+            bestOverall,
+            bestPool,
+            allyProfile: compositionProfile,
+            championsById: activeChampionMap,
+          })
+        : undefined,
+      recommendationComparison: buildRecommendationModeComparison({
+        bestOverall,
+        bestPool,
       }),
+      gamePlan,
       coachSummary: buildCoachSummary({
         draftState,
         championsById: activeChampionMap,
         compositionProfile,
         bestOverallLabel,
         bestPoolLabel,
+        gamePlan,
       }),
     }
-  }, [activeChampionMap, activeStatsBundle, draftState])
+  }, [activeChampionMap, activeChampionPool, activeStatsBundle, draftState])
 
   function handleAssignChampion(side: 'ALLY' | 'ENEMY', role: Role, championId: string) {
     setDraftState((currentDraftState) => assignChampionToSlot(currentDraftState, side, role, championId))
@@ -216,19 +243,19 @@ export function DraftWorkspacePage() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,1fr)]">
-      <div className="space-y-6">
-        <LiveSessionPanel
-          identity={identity}
-          session={session}
-          syncMode={syncMode}
-          onIdentityChange={setIdentity}
-          onSyncModeChange={setSyncMode}
-          onStartSession={startSession}
-          onStopSession={stopSession}
-          onTriggerDesktopMockSequence={triggerDesktopMockSequence}
-        />
+    <div className="space-y-6">
+      <LiveSessionPanel
+        identity={identity}
+        session={session}
+        syncMode={syncMode}
+        onIdentityChange={setIdentity}
+        onSyncModeChange={setSyncMode}
+        onStartSession={startSession}
+        onStopSession={stopSession}
+        onTriggerDesktopMockSequence={triggerDesktopMockSequence}
+      />
 
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(340px,0.95fr)]">
         <DraftBoard
           draftState={draftState}
           championCatalog={championCatalog}
@@ -239,47 +266,52 @@ export function DraftWorkspacePage() {
           onSelectCurrentRole={handleCurrentRoleChange}
         />
 
-        <BanPanel
-          draftState={draftState}
-          championCatalog={championCatalog}
-          championNamesById={championNamesById}
-          onAddBan={handleAddBan}
-          onRemoveBan={handleRemoveBan}
-        />
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <RecommendationPanel
-            title="Best Overall Picks"
-            subtitle="The strongest theoretical answers, regardless of player comfort."
-            recommendations={derivedState.bestOverallRecommendations}
+        <div className="space-y-6">
+          <MetaPanel
+            draftState={draftState}
+            selectedPatchVersion={selectedPatchVersion}
+            availablePatchVersions={patchVersions}
+            isPatchVersionsLoading={isPatchVersionsLoading}
+            patchVersionsError={patchVersionsError}
+            onPatchVersionChange={setSelectedPatchVersion}
+            onCurrentRoleChange={handleCurrentRoleChange}
           />
-          <RecommendationPanel
-            title="Personal Pool Picks"
-            subtitle="Recommendations constrained to the current player's support pool."
-            recommendations={derivedState.personalPoolRecommendations}
+          <BanPanel
+            draftState={draftState}
+            championCatalog={championCatalog}
+            championNamesById={championNamesById}
+            onAddBan={handleAddBan}
+            onRemoveBan={handleRemoveBan}
           />
+          {activeChampionPool ? (
+            <ChampionPoolPanel
+              championPool={activeChampionPool}
+              championsById={activeChampionMap}
+              isLoading={isChampionPoolLoading}
+              error={championPoolError}
+              advice={derivedState.championPoolAdvice}
+            />
+          ) : null}
         </div>
       </div>
 
-      <div className="space-y-6">
-        <MetaPanel
-          draftState={draftState}
-          selectedPatchVersion={selectedPatchVersion}
-          availablePatchVersions={patchVersions}
-          isPatchVersionsLoading={isPatchVersionsLoading}
-          patchVersionsError={patchVersionsError}
-          onPatchVersionChange={setSelectedPatchVersion}
-          onRecommendationModeChange={handleRecommendationModeChange}
-          onCurrentRoleChange={handleCurrentRoleChange}
-        />
+      <AICoachPanel summary={derivedState.coachSummary} gamePlan={derivedState.gamePlan} />
+
+      <RecommendationPanel
+        activeMode={draftState.recommendationMode}
+        bestOverallRecommendations={derivedState.bestOverallRecommendations}
+        personalPoolRecommendations={derivedState.personalPoolRecommendations}
+        comparison={derivedState.recommendationComparison}
+        onModeChange={handleRecommendationModeChange}
+      />
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <CompositionPanel compositionProfile={derivedState.compositionProfile} />
         <StatsIntelPanel
           statsBundle={activeStatsBundle}
           currentRole={draftState.currentPickRole}
           championsById={activeChampionMap}
         />
-        <CompositionPanel compositionProfile={derivedState.compositionProfile} />
-        <ChampionPoolPanel championPool={mockChampionPoolProfile} championsById={activeChampionMap} />
-        <AICoachPanel summary={derivedState.coachSummary} gamePlan={derivedState.gamePlan} />
       </div>
     </div>
   )

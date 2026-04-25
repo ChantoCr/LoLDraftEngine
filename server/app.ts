@@ -9,6 +9,7 @@ import { createLiveRouter } from '@server/live/router'
 import { InMemoryLiveSessionStore } from '@server/live/sessionStore'
 import { createChampionTraitsRouter } from '@server/championTraits/router'
 import { createStatsRouter } from '@server/stats/router'
+import { createPlayerPoolRouter } from '@server/playerPool/router'
 
 export function createServerApp() {
   const app = express()
@@ -46,6 +47,7 @@ export function createServerApp() {
   )
   app.use('/api/stats', createStatsRouter({ externalStatsUrl: config.externalStatsUrl }))
   app.use('/api/champion-traits', createChampionTraitsRouter({ externalStatsUrl: config.externalStatsUrl }))
+  app.use('/api/player-pool', createPlayerPoolRouter())
 
   return {
     app,

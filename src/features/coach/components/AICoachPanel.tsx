@@ -45,6 +45,68 @@ export function AICoachPanel({ summary, gamePlan }: AICoachPanelProps) {
           </div>
         </div>
 
+        {gamePlan.lanePhase ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Lane phase</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{gamePlan.lanePhase.summary}</p>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Priorities</p>
+                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                  {gamePlan.lanePhase.priorities.map((item) => (
+                    <li key={item.id}>{item.label} — {item.explanation}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Avoid</p>
+                <ul className="mt-2 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+                  {gamePlan.lanePhase.avoid.map((item) => (
+                    <li key={item.id}>{item.label} — {item.explanation}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Mid game posture</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{gamePlan.midGame.summary}</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+              {gamePlan.midGame.priorities.map((item) => (
+                <li key={item.id}>{item.label}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Objective setup</p>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{gamePlan.objectives.summary}</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">
+              {gamePlan.objectives.commonRisks.map((item) => (
+                <li key={item.id}>{item.label} — {item.explanation}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {gamePlan.matchupDangers.length > 0 ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Role-aware matchup danger</p>
+            <div className="mt-3 space-y-3">
+              {gamePlan.matchupDangers.map((danger) => (
+                <div key={`${danger.role}-${danger.type}`} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
+                  <p className="text-sm font-medium text-white">{danger.role} · {danger.type.replace('_', ' ')}</p>
+                  <p className="mt-1 text-sm leading-6 text-slate-300">{danger.summary}</p>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">Mitigation: {danger.mitigation}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Practical play rules</p>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-300">

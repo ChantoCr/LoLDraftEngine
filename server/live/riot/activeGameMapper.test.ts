@@ -27,6 +27,7 @@ describe('mapRiotActiveGameToDraftState', () => {
         region: 'LAN',
         activeGame: {
           gameId: 123,
+          gameQueueConfigId: 420,
           gameMode: 'CLASSIC',
           gameType: 'MATCHED_GAME',
           bannedChampions: [
@@ -51,7 +52,13 @@ describe('mapRiotActiveGameToDraftState', () => {
 
     expect(draftState).toMatchObject({
       patchVersion: '16.8.1',
+      productMode: 'SOLO_QUEUE',
       currentPickRole: 'SUPPORT',
+      queueContext: {
+        queueId: 420,
+        queueType: 'RANKED_SOLO_DUO',
+        label: 'Ranked Solo/Duo',
+      },
       allyTeam: {
         bans: ['lucian'],
       },
@@ -74,6 +81,7 @@ describe('mapRiotActiveGameToDraftState', () => {
         region: 'LAN',
         activeGame: {
           gameId: 123,
+          gameQueueConfigId: 440,
           gameMode: 'CLASSIC',
           gameType: 'MATCHED_GAME',
           participants: [
@@ -93,6 +101,12 @@ describe('mapRiotActiveGameToDraftState', () => {
     })
 
     expect(draftState?.currentPickRole).toBe('SUPPORT')
+    expect(draftState?.productMode).toBe('CLASH')
+    expect(draftState?.queueContext).toMatchObject({
+      queueId: 440,
+      queueType: 'RANKED_FLEX',
+      label: 'Ranked Flex',
+    })
     expect(draftState?.allyTeam.picks).toEqual([
       { role: 'TOP', championId: 'aatrox', isLocked: true },
       { role: 'JUNGLE', championId: 'sejuani', isLocked: true },
@@ -119,6 +133,7 @@ describe('mapRiotActiveGameToDraftState', () => {
         region: 'LAN',
         activeGame: {
           gameId: 123,
+          gameQueueConfigId: 420,
           gameMode: 'CLASSIC',
           gameType: 'MATCHED_GAME',
           participants: [

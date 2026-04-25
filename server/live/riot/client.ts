@@ -8,6 +8,7 @@ interface RiotAccountDto {
 }
 
 interface RiotSummonerDto {
+  id?: string
   puuid: string
   profileIconId: number
   revisionDate?: number
@@ -33,6 +34,7 @@ interface RiotCurrentGameBannedChampionDto {
 
 interface RiotCurrentGameInfoDto {
   gameId: number
+  gameQueueConfigId?: number
   gameMode: string
   gameType: string
   participants: RiotCurrentGameParticipantDto[]

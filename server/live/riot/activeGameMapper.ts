@@ -2,6 +2,7 @@ import type { ChampionClass, Role } from '@/domain/champion/types'
 import { ROLE_ORDER } from '@/domain/draft/constants'
 import { createDraftState } from '@/domain/draft/factories'
 import type { DraftState } from '@/domain/draft/types'
+import { buildRiotDraftQueueContext, deriveProductModeFromRiotQueue } from '@server/live/riot/queues'
 import type { DesktopChampionCatalogEntry } from '@server/live/desktopClient/source'
 import type { RiotRecognizedPlayer } from '@server/live/riot/client'
 
@@ -320,6 +321,16 @@ export function mapRiotActiveGameToDraftStateWithDebug({
     mappedChampionCount,
     draftState: createDraftState({
       patchVersion,
+      productMode: deriveProductModeFromRiotQueue({
+        queueId: activeGame.gameQueueConfigId,
+        gameMode: activeGame.gameMode,
+        gameType: activeGame.gameType,
+      }),
+      queueContext: buildRiotDraftQueueContext({
+        queueId: activeGame.gameQueueConfigId,
+        gameMode: activeGame.gameMode,
+        gameType: activeGame.gameType,
+      }),
       currentPickRole: localParticipantRole,
       allyPicks: allyTeamMapping.picks,
       enemyPicks: enemyTeamMapping.picks,

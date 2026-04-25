@@ -1,5 +1,11 @@
 import type { CompositionArchetype, ExecutionDifficulty } from '@/domain/composition/types'
 import type { Role } from '@/domain/champion/types'
+import type {
+  LanePhaseGuidance,
+  MidGameGuidance,
+  ObjectiveSetupGuidance,
+  RoleMatchupDanger,
+} from '@/domain/draft-context/types'
 
 export interface LiveGamePlan {
   playerRole: Role
@@ -12,4 +18,8 @@ export interface LiveGamePlan {
   easiestWinCondition: string
   practicalRules: string[]
   executionDifficulty: ExecutionDifficulty
+  lanePhase?: LanePhaseGuidance
+  midGame: MidGameGuidance
+  objectives: ObjectiveSetupGuidance
+  matchupDangers: RoleMatchupDanger[]
 }

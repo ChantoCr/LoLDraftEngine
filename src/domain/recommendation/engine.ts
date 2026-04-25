@@ -3,6 +3,8 @@ import type { Champion } from '@/domain/champion/types'
 import { average, clamp, roundTo, sum, unique } from '@/domain/common/math'
 import { analyzeDraftComposition } from '@/domain/composition/analyzer'
 import type { CompositionProfile } from '@/domain/composition/types'
+import { buildDraftContext } from '@/domain/draft-context/build'
+import { assignChampionToSlot } from '@/domain/draft/operations'
 import { countFilledSlots, getPickedChampionIds, isChampionAvailable } from '@/domain/draft/selectors'
 import type { DraftState, RecommendationMode } from '@/domain/draft/types'
 import { RECOMMENDATION_WEIGHTS_BY_MODE, type RecommendationWeights } from '@/domain/recommendation/config'
@@ -10,7 +12,9 @@ import type {
   RecommendationCandidate,
   RecommendationDimension,
   RecommendationDimensionScore,
+  RecommendationNarrative,
   RecommendationReason,
+  RecommendationScenario,
 } from '@/domain/recommendation/types'
 import { getChampionMetaSignal, getMatchupSignal, getSynergySignal } from '@/domain/stats/selectors'
 import type { MetaSignal, PatchDataBundle, SynergySignal } from '@/domain/stats/types'
@@ -33,6 +37,7 @@ interface RecommendationNeeds {
 
 interface RecommendationContext {
   draftState: DraftState
+  championsById: Record<string, Champion>
   recommendationMode: RecommendationMode
   allyProfile: CompositionProfile
   enemyProfile: CompositionProfile
@@ -42,6 +47,7 @@ interface RecommendationContext {
   needs: RecommendationNeeds
   statsBundle?: PatchDataBundle
 }
+
 
 function getPoolEntriesByChampionId(championPool?: ChampionPoolProfile) {
   return (championPool?.entries ?? []).reduce<Record<string, ChampionPoolEntry>>((entriesByChampionId, entry) => {
@@ -85,6 +91,41 @@ function createNeeds(allyProfile: CompositionProfile, enemyProfile: CompositionP
 
 function scaleTraitScore(value: number, multiplier = 1) {
   return clamp(roundTo(value * 2 * multiplier, 1), 0, 10)
+}
+
+export function buildRecommendationScenarioForChampion(
+  candidate: Champion,
+  input: { draftState: DraftState; championsById: Record<string, Champion> },
+): RecommendationScenario {
+  const simulatedDraftState = assignChampionToSlot(
+    input.draftState,
+    'ALLY',
+    input.draftState.currentPickRole,
+    candidate.id,
+    true,
+  )
+  const allyProfile = analyzeDraftComposition({
+    draftState: simulatedDraftState,
+    championsById: input.championsById,
+    side: 'ALLY',
+  })
+  const enemyProfile = analyzeDraftComposition({
+    draftState: simulatedDraftState,
+    championsById: input.championsById,
+    side: 'ENEMY',
+  })
+
+  return {
+    simulatedDraftState,
+    allyProfile,
+    enemyProfile,
+    draftContext: buildDraftContext({
+      draftState: simulatedDraftState,
+      championsById: input.championsById,
+      allyProfile,
+      enemyProfile,
+    }),
+  }
 }
 
 function getCandidateChampions({
@@ -337,12 +378,132 @@ function scoreComfortFit(candidate: Champion, context: RecommendationContext) {
   return clamp(roundTo(baseScore * 0.75 + poolEntry.masteryConfidence * 10 * 0.25, 1), 0, 10)
 }
 
-function buildDimensionScores(candidate: Champion, context: RecommendationContext): RecommendationDimensionScore[] {
+function scoreLaneMatchupFit(candidate: Champion, scenario: RecommendationScenario, context: RecommendationContext) {
+  const laneGuidance = scenario.draftContext.lanePhaseByRole[context.draftState.currentPickRole]
+  const primaryDanger = scenario.draftContext.matchupDangers.find((danger) => danger.role === context.draftState.currentPickRole)
+  let score = 5.8
+
+  if (laneGuidance) {
+    switch (laneGuidance.posture) {
+      case 'PRESS_PRIORITY':
+        score += candidate.traits.poke * 0.45 + candidate.traits.pick * 0.15
+        break
+      case 'ALL_IN_WINDOW':
+        score += candidate.traits.engage * 0.45 + candidate.traits.dive * 0.35
+        break
+      case 'PLAY_FOR_ROAM':
+        score += candidate.traits.pick * 0.45 + candidate.traits.engage * 0.25
+        break
+      case 'PROTECT_WAVE':
+        score += candidate.traits.poke * 0.25 + candidate.traits.disengage * 0.25
+        break
+      case 'SHORT_TRADE':
+        score += candidate.traits.poke * 0.3 + candidate.traits.disengage * 0.3
+        break
+      case 'STABILIZE':
+      default:
+        score += candidate.traits.peel * 0.25 + candidate.traits.disengage * 0.35 + candidate.traits.frontline * 0.2
+        break
+    }
+  }
+
+  if (primaryDanger) {
+    switch (primaryDanger.type) {
+      case 'ALL_IN':
+        score += candidate.traits.disengage * 0.45 + candidate.traits.peel * 0.35 + candidate.traits.frontline * 0.2
+        break
+      case 'POKE':
+        score += candidate.traits.engage * 0.35 + candidate.traits.disengage * 0.25 + candidate.traits.poke * 0.2
+        break
+      case 'ROAM':
+        score += candidate.traits.pick * 0.35 + candidate.traits.engage * 0.25 + candidate.traits.scaling * 0.1
+        break
+      case 'DIVE':
+        score += candidate.traits.peel * 0.45 + candidate.traits.disengage * 0.35 + candidate.traits.frontline * 0.2
+        break
+      case 'PICK':
+        score += candidate.traits.disengage * 0.4 + candidate.traits.peel * 0.25 + candidate.traits.frontline * 0.2
+        break
+      case 'PRIORITY_LOSS':
+        score += candidate.traits.poke * 0.35 + candidate.traits.engage * 0.25 + candidate.traits.pick * 0.2
+        break
+    }
+
+    if (primaryDanger.severity === 'HIGH') {
+      score -= 0.2
+    }
+  }
+
+  return clamp(roundTo(score, 1), 0, 10)
+}
+
+function scoreObjectiveSetupFit(candidate: Champion, scenario: RecommendationScenario, context: RecommendationContext) {
+  const primaryCall = scenario.draftContext.objectives.primaryCall
+  let score = 5.7
+
+  switch (primaryCall) {
+    case 'ARRIVE_FIRST':
+      score += candidate.traits.engage * 0.25 + candidate.traits.pick * 0.25 + candidate.traits.poke * 0.15
+      break
+    case 'START_ON_SPAWN':
+      score += candidate.traits.frontline * 0.35 + candidate.traits.engage * 0.3 + candidate.traits.peel * 0.15
+      break
+    case 'TURN_ON_ENTRY':
+      score += candidate.traits.engage * 0.35 + candidate.traits.pick * 0.3 + candidate.traits.frontline * 0.2
+      break
+    case 'CONTROL_CHOKES':
+      score += candidate.traits.poke * 0.35 + candidate.traits.pick * 0.3 + candidate.traits.disengage * 0.15
+      break
+    case 'TRADE_CROSSMAP':
+      score += candidate.traits.scaling * 0.35 + candidate.traits.pick * 0.2 + candidate.traits.poke * 0.15
+      break
+    case 'AVOID_BLIND_ENTRY':
+      score += candidate.traits.peel * 0.35 + candidate.traits.disengage * 0.3 + candidate.traits.frontline * 0.2
+      break
+  }
+
+  if (context.draftState.productMode !== 'SOLO_QUEUE') {
+    score += candidate.traits.engage * 0.05 + candidate.traits.peel * 0.05
+  }
+
+  return clamp(roundTo(score, 1), 0, 10)
+}
+
+function scoreMacroPostureFit(candidate: Champion, scenario: RecommendationScenario) {
+  const posture = scenario.draftContext.midGame.posture
+  let score = 5.8
+
+  switch (posture) {
+    case 'GROUP_AND_FORCE':
+      score += candidate.traits.engage * 0.35 + candidate.traits.frontline * 0.3 + candidate.traits.dive * 0.15
+      break
+    case 'PROTECT_AND_FRONT_TO_BACK':
+      score += candidate.traits.peel * 0.35 + candidate.traits.frontline * 0.3 + candidate.traits.scaling * 0.2
+      break
+    case 'PICK_AND_RESET':
+      score += candidate.traits.pick * 0.4 + candidate.traits.poke * 0.2 + candidate.traits.engage * 0.15
+      break
+    case 'STALL_AND_SCALE':
+      score += candidate.traits.scaling * 0.35 + candidate.traits.disengage * 0.25 + candidate.traits.peel * 0.2
+      break
+    case 'SIDE_AND_COLLAPSE':
+      score += candidate.traits.dive * 0.35 + candidate.traits.pick * 0.25 + candidate.traits.engage * 0.2
+      break
+  }
+
+  return clamp(roundTo(score, 1), 0, 10)
+}
+
+function buildDimensionScores(
+  candidate: Champion,
+  context: RecommendationContext,
+  scenario: RecommendationScenario,
+): RecommendationDimensionScore[] {
   const dimensions: Record<RecommendationDimension, number> = {
-    allySynergy: scoreAllySynergy(candidate, context.allyProfile, context),
-    enemyCounter: scoreEnemyCounter(candidate, context.enemyProfile, context),
+    allySynergy: scoreAllySynergy(candidate, scenario.allyProfile, context),
+    enemyCounter: scoreEnemyCounter(candidate, scenario.enemyProfile, context),
     compRepair: scoreCompRepair(candidate, context.allyProfile, context.needs),
-    damageBalance: scoreDamageBalance(candidate, context.allyProfile),
+    damageBalance: scoreDamageBalance(candidate, scenario.allyProfile),
     frontlineImpact: scaleTraitScore(candidate.traits.frontline, 0.8 + context.needs.needFrontline * 0.8),
     engageImpact: scaleTraitScore(candidate.traits.engage, 0.75 + context.needs.needEngage * 0.7),
     peelImpact: scaleTraitScore(
@@ -352,6 +513,9 @@ function buildDimensionScores(candidate: Champion, context: RecommendationContex
     executionFit: scoreExecutionFit(candidate, context),
     metaValue: scoreMetaValue(candidate, context),
     comfortFit: scoreComfortFit(candidate, context),
+    laneMatchupFit: scoreLaneMatchupFit(candidate, scenario, context),
+    objectiveSetupFit: scoreObjectiveSetupFit(candidate, scenario, context),
+    macroPostureFit: scoreMacroPostureFit(candidate, scenario),
   }
 
   return Object.entries(dimensions).map(([dimension, score]) => {
@@ -423,6 +587,7 @@ function buildReasons(
   candidate: Champion,
   context: RecommendationContext,
   dimensions: RecommendationDimensionScore[],
+  scenario: RecommendationScenario,
 ): RecommendationReason[] {
   const reasons: RecommendationReason[] = []
   const allySynergy = getDimensionScore(dimensions, 'allySynergy').score
@@ -432,10 +597,15 @@ function buildReasons(
   const peelImpact = getDimensionScore(dimensions, 'peelImpact').score
   const executionFit = getDimensionScore(dimensions, 'executionFit').score
   const comfortFit = getDimensionScore(dimensions, 'comfortFit').score
+  const laneMatchupFit = getDimensionScore(dimensions, 'laneMatchupFit').score
+  const objectiveSetupFit = getDimensionScore(dimensions, 'objectiveSetupFit').score
+  const macroPostureFit = getDimensionScore(dimensions, 'macroPostureFit').score
   const poolEntry = context.poolEntriesByChampionId[candidate.id]
   const strongestSynergySignal = getStrongestSynergySignal(candidate, context)
   const strongestMatchupSignal = getStrongestMatchupSignal(candidate, context)
   const metaReason = buildMetaReason(candidate, context)
+  const laneGuidance = scenario.draftContext.lanePhaseByRole[context.draftState.currentPickRole]
+  const roleDanger = scenario.draftContext.matchupDangers.find((danger) => danger.role === context.draftState.currentPickRole)
 
   if (
     strongestSynergySignal &&
@@ -519,6 +689,43 @@ function buildReasons(
     })
   }
 
+  if (laneMatchupFit >= 8 && laneGuidance) {
+    reasons.push({
+      id: `${candidate.id}-lane-fit`,
+      type: 'LANE',
+      direction: 'pro',
+      label: 'Fits the expected lane pattern well',
+      explanation: roleDanger
+        ? `${candidate.name} matches the lane requirement into ${roleDanger.type.toLowerCase().replace('_', ' ')} pressure and keeps the role more playable early.`
+        : `${candidate.name} supports a strong ${laneGuidance.posture.toLowerCase().replaceAll('_', ' ')} lane posture for the current board.`,
+      impact: roundTo(laneMatchupFit, 0),
+    })
+  }
+
+  if (objectiveSetupFit >= 8) {
+    reasons.push({
+      id: `${candidate.id}-objective-fit`,
+      type: 'OBJECTIVE',
+      direction: 'pro',
+      label: 'Improves how this comp wants to fight objectives',
+      explanation:
+        `${candidate.name} better supports the current objective call: ${scenario.draftContext.objectives.primaryCall.toLowerCase().replaceAll('_', ' ')}.`,
+      impact: roundTo(objectiveSetupFit, 0),
+    })
+  }
+
+  if (macroPostureFit >= 8) {
+    reasons.push({
+      id: `${candidate.id}-macro-posture`,
+      type: 'POSTURE',
+      direction: 'pro',
+      label: 'Matches the team’s mid-game posture',
+      explanation:
+        `${candidate.name} fits a ${scenario.draftContext.midGame.posture.toLowerCase().replaceAll('_', ' ')} game plan better than a generic comfort pick would.`,
+      impact: roundTo(macroPostureFit, 0),
+    })
+  }
+
   if (metaReason) {
     reasons.push(metaReason)
   }
@@ -559,6 +766,19 @@ function buildReasons(
     })
   }
 
+  if (laneGuidance && laneMatchupFit < 6.1) {
+    reasons.push({
+      id: `${candidate.id}-lane-risk`,
+      type: 'RISK',
+      direction: 'con',
+      label: 'Lane phase is less forgiving with this pick',
+      explanation: roleDanger
+        ? `${candidate.name} does not solve the current ${roleDanger.type.toLowerCase().replace('_', ' ')} lane pressure as cleanly as the better alternatives.`
+        : `${candidate.name} gives less lane control than the better options for this board.`,
+      impact: roundTo(7 - laneMatchupFit, 0),
+    })
+  }
+
   if (executionFit < 6.4) {
     reasons.push({
       id: `${candidate.id}-execution-risk`,
@@ -571,19 +791,23 @@ function buildReasons(
     })
   }
 
-  return reasons.sort((left, right) => right.impact - left.impact).slice(0, 3)
+  return reasons.sort((left, right) => right.impact - left.impact).slice(0, 4)
 }
 
 function buildTags(
   candidate: Champion,
   context: RecommendationContext,
   dimensions: RecommendationDimensionScore[],
+  scenario: RecommendationScenario,
 ) {
   const tags: string[] = []
   const engageImpact = getDimensionScore(dimensions, 'engageImpact').score
   const peelImpact = getDimensionScore(dimensions, 'peelImpact').score
   const compRepair = getDimensionScore(dimensions, 'compRepair').score
   const comfortFit = getDimensionScore(dimensions, 'comfortFit').score
+  const laneMatchupFit = getDimensionScore(dimensions, 'laneMatchupFit').score
+  const objectiveSetupFit = getDimensionScore(dimensions, 'objectiveSetupFit').score
+  const macroPostureFit = getDimensionScore(dimensions, 'macroPostureFit').score
   const metaSignal = context.statsBundle
     ? getChampionMetaSignal(context.statsBundle, candidate.id, context.draftState.currentPickRole)
     : undefined
@@ -616,11 +840,25 @@ function buildTags(
     tags.push('Good into enemy comp')
   }
 
+  if (laneMatchupFit >= 8.2) {
+    tags.push('Stable lane')
+  }
+
+  if (objectiveSetupFit >= 8.2) {
+    tags.push(
+      scenario.draftContext.objectives.primaryCall === 'TURN_ON_ENTRY' ? 'Strong objective turn' : 'Objective fit',
+    )
+  }
+
+  if (macroPostureFit >= 8.2) {
+    tags.push('Macro fit')
+  }
+
   if (metaSignal && (metaSignal.tier === 'S' || metaSignal.tier === 'A')) {
     tags.push('Patch favored')
   }
 
-  return unique(tags).slice(0, 3)
+  return unique(tags).slice(0, 4)
 }
 
 function buildConfidence(totalScore: number, context: RecommendationContext) {
@@ -638,8 +876,40 @@ function buildConfidence(totalScore: number, context: RecommendationContext) {
   return 'low'
 }
 
+function buildNarrative(
+  candidate: Champion,
+  context: RecommendationContext,
+  dimensions: RecommendationDimensionScore[],
+  scenario: RecommendationScenario,
+  reasons: RecommendationReason[],
+): RecommendationNarrative {
+  const topReasons = reasons.filter((reason) => reason.direction === 'pro').slice(0, 3)
+  const topDimensions = [...dimensions].sort((left, right) => right.contribution - left.contribution).slice(0, 3)
+  const currentRole = context.draftState.currentPickRole.toLowerCase()
+  const objectiveCall = scenario.draftContext.objectives.primaryCall.toLowerCase().replaceAll('_', ' ')
+  const posture = scenario.draftContext.midGame.posture.toLowerCase().replaceAll('_', ' ')
+
+  return {
+    headline: `Pick ${candidate.name} for ${currentRole}`,
+    summary:
+      topReasons.length > 0
+        ? `${candidate.name} is recommended because it best supports your current ${currentRole} game: ${topReasons
+            .map((reason) => reason.label.toLowerCase())
+            .join(', ')}. It also fits a ${posture} mid game and a ${objectiveCall} objective plan.`
+        : `${candidate.name} is the strongest deterministic fit for your ${currentRole} slot on the current board.`,
+    decisionFactors: [
+      ...topReasons.map((reason) => reason.explanation),
+      ...topDimensions.map(
+        (dimension) => `${dimension.dimension} scored ${dimension.score.toFixed(1)} and materially improved this candidate's final rank.`,
+      ),
+    ].slice(0, 4),
+  }
+}
+
 function toRecommendationCandidate(candidate: Champion, context: RecommendationContext): RecommendationCandidate {
-  const dimensions = buildDimensionScores(candidate, context)
+  const scenario = buildRecommendationScenarioForChampion(candidate, context)
+  const dimensions = buildDimensionScores(candidate, context, scenario)
+  const reasons = buildReasons(candidate, context, dimensions, scenario)
   const totalWeightedContribution = sum(dimensions.map((dimension) => dimension.contribution))
   const maxPossibleContribution = sum(dimensions.map((dimension) => dimension.weight * 10)) || 1
   const totalScore = roundTo((totalWeightedContribution / maxPossibleContribution) * 100, 0)
@@ -648,13 +918,14 @@ function toRecommendationCandidate(candidate: Champion, context: RecommendationC
     championId: candidate.id,
     championName: candidate.name,
     recommendationMode: context.recommendationMode,
-    tags: buildTags(candidate, context, dimensions),
+    tags: buildTags(candidate, context, dimensions, scenario),
     breakdown: {
       totalScore,
       confidence: buildConfidence(totalScore, context),
       dimensions,
-      reasons: buildReasons(candidate, context, dimensions),
+      reasons,
     },
+    narrative: buildNarrative(candidate, context, dimensions, scenario, reasons),
   }
 }
 
@@ -674,6 +945,7 @@ export function recommendChampionsForDraft({
   const enemyProfile = analyzeDraftComposition({ draftState, championsById, side: 'ENEMY' })
   const context: RecommendationContext = {
     draftState,
+    championsById,
     recommendationMode,
     allyProfile,
     enemyProfile,

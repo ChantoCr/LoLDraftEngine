@@ -4,10 +4,10 @@
 LoLDraftEngine
 
 ## What this project is
-A multi-region League of Legends Draft Intelligence Platform focused on deterministic draft analysis, inspectable recommendation logic, patch-aware data, live-session tooling, and future AI-assisted strategic coaching.
+A multi-region League of Legends Draft Intelligence Platform focused on deterministic draft analysis, inspectable recommendation logic, patch-aware data, live-session tooling, personal-pool-aware recommendations, and future AI-assisted strategic coaching.
 
 The product supports two different live-related realities:
-1. **RIOT_API** for player recognition and live-game roster snapshots when Riot spectator APIs expose them.
+1. **RIOT_API** for player recognition, live-game roster snapshots when spectator APIs expose them, queue recognition, and Riot-based personal-pool lookup.
 2. **DESKTOP_CLIENT** for the real local-client path to live pick/ban sync.
 
 ## Ultimate product goals
@@ -15,11 +15,12 @@ The long-term goal is to build a high-quality LoL draft assistant that can:
 - understand live draft states
 - sync real champion-select state through a local desktop companion
 - analyze ally and enemy compositions deterministically
-- recommend context-aware champions
+- recommend champions by context
 - support both best-overall and personal-pool recommendation modes
+- detect queue context such as solo/duo, flex, clash, normals, and similar live environments
+- explain why a champion is recommended
+- later recommend build paths deterministically from structured draft signals
 - stay patch-aware
-- explain the draft, matchup, and game plan clearly
-- give practical champion-specific play guidance after the board is populated
 
 Important hierarchy:
 1. deterministic domain truth
@@ -61,88 +62,130 @@ Important current routing example:
 4. `PROJECT_BRIEFING.md`
 5. `AGENTS.md`
 
-## Comprehensive summary of what happened in this chat
+## What happened today
 
-### Riot API behavior was re-validated against the official Riot docs
-We checked the official Riot Developer Portal and corrected an outdated assumption in the live Riot path.
+### 1. A deterministic build recommendation layer was implemented
+The project now has a dedicated build domain module downstream of recommendation + draft-context signals.
 
-Important confirmed facts:
-- Riot public APIs are useful for **recognition** and **active-game presence**.
-- Riot public APIs do **not** provide true champ-select pick/ban streaming.
-- `RIOT_API` should still be treated as a **live game roster analysis mode**, not a real live draft-sync mode.
-- Data Dragon is **not** part of the live spectator problem; it only provides static patch/champion data.
+Implemented areas:
+- starter guidance
+- first-buy guidance
+- core item path guidance
+- situational anti-dive / anti-poke / anti-heal / anti-frontline / anti-burst branches
+- deterministic build explanations
+- curated vs scaffolded build-profile quality notes
 
-Most important implementation correction from the official docs:
-- `summoner-v4` by PUUID should not be treated as the source of legacy encrypted summoner ids / account ids / legacy names.
-- `spectator-v5` active-game lookup should use the player's **PUUID directly**.
+Important files:
+- `src/domain/build/types.ts`
+- `src/domain/build/context.ts`
+- `src/domain/build/engine.ts`
+- `src/domain/build/explain.ts`
+- `src/domain/build/itemCatalog.ts`
+- `src/domain/build/profileRegistry.ts`
+- `src/domain/build/scaffold.ts`
 
-### Riot API live lookup was hardened and corrected
-Implemented during this chat sequence:
-- Riot snapshot debug panel
-- Riot lookup diagnostics panel
-- Riot pipeline summary panel
-- Riot recommended-next-steps panel
-- improved Riot role inference for mapped live-game rosters
-- clearer Riot warning normalization for blocked / unavailable spectator paths
-- **desktop-style fallback assumptions were removed from the required Riot live lookup path**
-- Riot active-game lookup now calls spectator-v5 with the player's **PUUID directly**
+Result:
+- build logic is framework-agnostic and testable without React
+- recommendation ranking and build selection remain separate domain concerns
+- AI remains downstream of structured signals rather than becoming the build authority
 
-Why this mattered:
-- the previous flow was trying to recover legacy-style identifiers when Riot account recognition had already succeeded
-- that caused misleading fallback behavior and 403s on routes that are not the required modern path for spectator-v5
-- the current code now follows the official Riot docs more closely
+### 2. Curated build fidelity was expanded and made patch-scoped
+Curated build profiles were expanded for more champions and then moved into a patch-scoped data file.
 
-Current Riot reality after this fix:
-- recognition can succeed
-- active-game lookup can now be attempted directly through spectator-v5 using the player PUUID
-- if Riot still does not return an active game, the app can now expose that as a real spectator/API availability result instead of a broken legacy fallback chain
+Implemented files:
+- `src/domain/build/data/patches/15.8.ts`
+- `src/domain/build/profiles.ts`
+- `src/domain/build/profiles.test.ts`
 
-### Riot active-game roster -> DraftState mapping was expanded
-We now have:
-- Riot active-game spectator participant mapping into internal `DraftState`
-- heuristic role inference instead of simple participant-order placement only
-- clearer mapping failure reasoning
-- richer diagnostics when a snapshot exists but does not map cleanly
+Result:
+- curated build profiles now resolve through a patch-aware layer
+- scaffold fallback still exists for broader roster coverage
+- the project now has a cleaner long-term path for adding future patch-specific build datasets
 
-Important note:
-- this still depends on Riot spectator data being available for the current live game
-- this does **not** make Riot mode a champ-select stream
+### 3. Draft-context now exposes richer enemy threat signals for build logic
+The deterministic draft-context layer was extended with structured enemy threat profiling.
 
-### Desktop companion path was further improved
-The desktop-client path remains the real live sync path and gained better operational visibility.
+Implemented / updated:
+- `enemyThreatProfile`
+- champion-specific threat overrides for burst, sustained DPS, dive, pick, poke, CC, frontline, healing, and shielding
+- stronger downstream build triggers for lane-aware first-buy logic
 
-Implemented / improved:
-- typed desktop source contract
-- LCU-compatible champ-select mapper -> `DraftState`
-- lockfile-based LCU credential discovery
-- local self-signed HTTPS-compatible LCU requester
-- desktop stale/duplicate ingest protection
-- desktop mock / file / LCU helpers
-- desktop debug panel showing:
-  - last heartbeat
-  - companion instance id
-  - last ingest event id
-  - last ingest sequence number
-  - lightweight recent-event timeline
-- `DESKTOP_CLIENT` still does not require Riot name/tag input
-- **Test desktop mock now** button remains available in the UI
+Important files:
+- `src/domain/draft-context/types.ts`
+- `src/domain/draft-context/build.ts`
+- `src/domain/draft-context/build.test.ts`
 
-### AI Coach / game-plan work remains advanced and ready for expansion
-Already implemented:
-- your champion’s job
-- ally comp identity
-- enemy comp identity
-- key threat to watch
-- easiest win condition
-- practical play rules
-- execution difficulty context
+Result:
+- build guidance is now reacting to more realistic board threats
+- lane-specific first-buy decisions are materially stronger than the first v1 pass
 
-The next best product-visible layer is still expanding lane-phase, mid-game, objective, and matchup-aware coaching.
+### 4. Recommendation packaging now includes downstream build outputs
+The recommendation pipeline now packages picks plus optional builds while still preserving clean mode separation.
+
+Important files:
+- `src/domain/recommendation/types.ts`
+- `src/domain/recommendation/engine.ts`
+- `src/domain/recommendation/pipeline.ts`
+- `src/domain/recommendation/pipeline.test.ts`
+
+Result:
+- best-overall and personal-pool recommendations remain distinct in the domain layer
+- the UI can render one unified recommendation surface without collapsing the underlying deterministic outputs
+
+### 5. Recommendation UI was redesigned into one tabbed panel
+The workspace no longer shows two side-by-side recommendation columns.
+
+Updated files:
+- `src/features/recommendations/components/RecommendationPanel.tsx`
+- `src/features/meta/components/MetaPanel.tsx`
+- `src/pages/DraftWorkspacePage.tsx`
+
+Result:
+- one recommendation panel now exists with explicit tabs for:
+  - `Best Overall`
+  - `Personal Pool`
+- mode switching moved into the recommendation surface instead of being duplicated in the meta panel
+- the domain distinction between best-overall and personal-pool recommendations is still preserved
+
+### 6. Workspace layout was improved to give more room to coach + recommendations
+The top of the page now uses:
+- full-width `LiveSessionPanel`
+- then a two-column row with:
+  - `DraftBoard` on the left
+  - draft controls / bans / pool context on the right
+- then full-width `AICoachPanel`
+- then full-width `RecommendationPanel`
+
+Result:
+- the coach and recommendation engine now use much more horizontal space
+- the draft-control workflow is tighter and more readable
+
+### 7. Riot personal-pool lookup was hardened
+The Riot champion-pool resolver now tries to recover the encrypted summoner id from active-game participant data if Riot omits it from the PUUID-based summoner response.
+
+Updated files:
+- `server/playerPool/riot.ts`
+- `server/playerPool/riot.test.ts`
+- `src/features/pool/hooks/useResolvedChampionPool.ts`
+
+Result:
+- Riot pool lookup is more resilient in live contexts where spectator participant data exposes `summonerId`
+- if Riot still does not expose an encrypted summoner id anywhere, fallback pool behavior stays explicit and the UI now explains that it is using fallback data
 
 ## Main systems already implemented
 - deterministic draft-state model
+- queue-aware draft state for Riot live sessions
 - composition analyzer
-- recommendation engine
+- draft-context layer
+- deterministic game-plan / coach layer
+- recommendation engine with candidate simulation and draft-context dimensions
+- best-overall vs personal-pool comparison logic
+- tabbed recommendation UI over explicitly separate best-overall vs personal-pool domain outputs
+- deterministic build domain layer with starter / first-buy / core / situational guidance
+- patch-scoped curated build profile data plus scaffolded build fallback
+- champion-pool advisor
+- Riot-based personal-pool resolution through champion mastery
+- Riot encrypted-summoner-id fallback recovery from active-game participant data when available
 - stats-layer contracts and adapters
 - Data Dragon integration with latest patch resolution
 - external stats scaffold
@@ -155,8 +198,6 @@ The next best product-visible layer is still expanding lane-phase, mid-game, obj
 - interactive draft board with bans
 - patch selector + latest-patch sync UI
 - clickable champion search on the draft board
-- deterministic live game-plan layer
-- richer AI coach panel fed by deterministic signals
 
 ## Commands that matter right now
 ### Frontend
@@ -171,7 +212,6 @@ The next best product-visible layer is still expanding lane-phase, mid-game, obj
 - `npm run desktop:mock -- <sessionId>`
 - `npm run desktop:file -- <sessionId> <draftState.json>`
 - `npm run desktop:lcu -- <sessionId> [patchVersion] [lockfilePath]`
-- `npm run desktop:lcu -- <sessionId> [patchVersion] [lockfilePath]`
 
 ### Quality
 - `npm run build`
@@ -182,13 +222,15 @@ The next best product-visible layer is still expanding lane-phase, mid-game, obj
 - manual draft editing
 - full Data Dragon roster loading in frontend mode
 - latest-patch resolution and explicit patch selection
+- queue-aware Riot live mapping into draft state
+- Riot-based role-aware personal-pool resolution
 - recommendation recomputation on draft changes
+- richer deterministic recommendation narratives and comparison summaries
 - bans UI
 - desktop companion LCU path is working in the current user flow
 - desktop mock trigger exists in UI and through CLI
-- RIOT_API mode can now act as a live-game roster analysis mode when spectator APIs expose the game roster
-- Riot lookup diagnostics now show step-by-step status, pipeline summary, and recommended next actions when spectator lookup does not produce a board snapshot
-- composition analysis and AI coach can consume the board state from those flows
+- RIOT_API mode can act as a live-game roster analysis mode when spectator APIs expose the game roster
+- draft-context, game-plan, recommendation, and coach layers all consume the board deterministically
 
 ### Important distinction
 #### RIOT_API
@@ -196,6 +238,8 @@ Use for:
 - Riot player recognition
 - live-game presence checks
 - live-game roster snapshots when Riot spectator data is available
+- queue detection
+- Riot-based champion-pool lookup
 
 Do **not** expect:
 - champ-select pick/ban streaming
@@ -210,23 +254,24 @@ Use for:
 ## Biggest constraints still in play
 1. Riot public APIs do not provide real champ-select draft streaming.
 2. Riot spectator availability is not guaranteed for every game mode/session type.
-3. Riot active-game role inference is now heuristic-based and materially better than simple order placement, but it is still not production-perfect.
+3. Riot active-game role inference is materially better than simple participant order placement, but it is still not production-perfect.
 4. All-champion strategic trait fidelity is still partially scaffolded/inferred.
-5. Real matchup/synergy/meta stats still need a real provider behind `EXTERNAL_STATS_URL` or another production path.
-6. AI coach is still deterministic-summary-first and not yet fully wired to OpenAI/Pi orchestration.
+5. Deterministic build recommendation now exists, but curated build profile coverage and threat fidelity are still incomplete for much of the full roster.
+6. Real matchup/synergy/meta/build stats still need a real provider behind `EXTERNAL_STATS_URL` or another production path.
+7. AI coach is still deterministic-summary-first and not yet fully wired to OpenAI/Pi orchestration.
 
 ## Current quality status
-Current validated state at the end of this chat:
+Current validated state at the end of today:
 - builds pass
 - tests pass
-- **39 test files**
-- **83 tests passing**
+- **46 test files**
+- **106 tests passing**
 
 ## Important environment notes
 - `.env.example` is a template only
 - the backend actually loads `.env` and `.env.local`
 - do not overwrite the user's Riot API key
-- for Riot recognition, keep using the user's configured `RIOT_API_KEY`
+- for Riot recognition and Riot pool lookup, keep using the user's configured `RIOT_API_KEY`
 - optional desktop companion auth can use `DESKTOP_COMPANION_TOKEN`
 
 ## What to do next
@@ -234,25 +279,25 @@ Read:
 - `PROJECT_BRIEFING.md` for full context
 - `NEXT_STEPS.md` for execution order
 
-### Highest-value next work after this chat
-1. validate the corrected **RIOT_API spectator-v5 PUUID lookup path** against real live games
-   - capture recorded fixtures for success / not-found / forbidden cases
-   - confirm the app now surfaces true spectator availability outcomes instead of legacy fallback artifacts
-2. expand the **live game-plan / AI Coach** layer further
-   - lane-phase plan
-   - mid-game posture
-   - objective setup guidance
-   - role-aware matchup danger guidance
-3. persist **curated champion trait datasets** with patch-aware overrides
-4. connect a **real external stats provider**
-5. continue polishing desktop live-sync UX and diagnostics where useful
+### Highest-value next work after today
+1. expand patch-scoped curated build profile coverage and curated threat overrides for more high-priority champions / roles
+2. improve all-champion trait fidelity with curated patch-aware trait overrides
+3. deepen personal-pool advisor messaging around comfort vs strategy tradeoffs
+4. surface structured build outputs further into the coach layer without moving build logic into React
+5. continue Riot live fixture capture as a follow-up stream, not the main next product focus
 
 ## Recommended first action in the next chat
 Start with:
-- reading `README.md`, `HANDOFF.md`, `NEXT_STEPS.md`, and `PROJECT_BRIEFING.md`
-- then verify the updated `RIOT_API` spectator-v5 **PUUID-based** active-game lookup against a real live game
-- inspect whether the result is now:
-  - active game found
-  - no active game found
-  - spectator forbidden / unavailable
-- then continue the **live game-plan / coach expansion** work once Riot live validation is confirmed
+- reading `README.md`, `HANDOFF.md`, `NEXT_STEPS.md`, `PROJECT_BRIEFING.md`, and `PROMPT.md`
+- then continue expanding patch-scoped curated build coverage and curated threat fidelity
+- keep build + recommendation logic deterministic and downstream of structured signals
+- preserve the current UI flow:
+  - full-width live session
+  - draft board beside controls / bans / pool context
+  - full-width AI coach
+  - full-width tabbed recommendation engine
+
+Riot reminder for future debugging:
+- the spectator-v5 PUUID path is the correct path
+- `401 Unknown apikey` is a backend key/config issue, not a spectator path issue
+- `DESKTOP_CLIENT` remains the real live-sync path
